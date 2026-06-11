@@ -1,0 +1,46 @@
+# Generates the local chezmoi config (~/.config/chezmoi/chezmoi.toml) on `chezmoi init`.
+# Values are prompted once per machine and stored locally — they are NEVER committed
+# to this repository, which keeps personal/per-machine data out of the public history.
+#
+# To change a value later: edit ~/.config/chezmoi/chezmoi.toml, or re-run
+# `chezmoi init --prompt` to be asked again.
+{{/*
+  Every prompt carries a default (4th arg) so `chezmoi init --promptDefaults`
+  can render the templates non-interactively in CI without restating the
+  variable set. This is the single definition of the machine profile.
+*/ -}}
+{{- $email := promptStringOnce . "git.email" "Git email" "you@example.com" -}}
+{{- $name := promptStringOnce . "git.name" "Git name" "Your Name" -}}
+{{- $signingkey := promptStringOnce . "git.signingkey" "Git signing key (GPG key id, leave blank to skip)" "" -}}
+{{- $gooseProvider := promptStringOnce . "goose.provider" "Goose provider" "anthropic" -}}
+{{- $gooseModel := promptStringOnce . "goose.model" "Goose model" "claude-sonnet-4-6" -}}
+{{- $goosePlannerProvider := promptStringOnce . "goose.plannerProvider" "Goose planner provider" "anthropic" -}}
+{{- $goosePlannerModel := promptStringOnce . "goose.plannerModel" "Goose planner model" "claude-opus-4-8" -}}
+{{- $tfMirror := promptStringOnce . "terraform.networkMirrorUrl" "Terraform network mirror URL (leave blank to skip)" "" -}}
+{{- $dockerSocket := promptStringOnce . "docker.socketPath" "Docker socket path for DOCKER_HOST (leave blank to skip)" "" }}
+# Apply a 0o027 umask so managed targets are group-readable but never world-readable
+# (files become 0640, dirs 0750). chezmoi ignores the group/other permission bits of
+# source files, so a global umask is the only way to keep targets like ~/.vimrc out of
+# other users' reach.
+umask = 0o027
+
+[data.git]
+    email = {{ $email | quote }}
+    name = {{ $name | quote }}
+    signingkey = {{ $signingkey | quote }}
+
+[data.goose]
+    provider = {{ $gooseProvider | quote }}
+    model = {{ $gooseModel | quote }}
+    plannerProvider = {{ $goosePlannerProvider | quote }}
+    plannerModel = {{ $goosePlannerModel | quote }}
+
+[data.terraform]
+    networkMirrorUrl = {{ $tfMirror | quote }}
+    # Providers to exclude from direct installation (served by the mirror
+    # instead). Empty by default; populate per machine, e.g.
+    # directExclude = ["registry.terraform.io/*/*"].
+    directExclude = []
+
+[data.docker]
+    socketPath = {{ $dockerSocket | quote }}

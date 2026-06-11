@@ -1,0 +1,12 @@
+# Files that live in this repo but must NOT be applied into the home directory.
+# (Dot-prefixed files like .gitignore are auto-ignored by chezmoi; only the
+# non-dot repo-meta files below need to be listed explicitly.)
+README.md
+LICENSE
+CLAUDE.md
+CONTEXT.md
+renovate.json
+scripts/
+scripts/**
+docs/
+docs/**

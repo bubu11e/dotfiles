@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track mattpocock/skills main HEAD for vendored Claude skills",
+      "managerFilePatterns": ["/^scripts/update-vendored-skills\\.sh$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) packageName=(?<packageName>\\S+) branch=(?<currentValue>\\S+)\\s+UPSTREAM_REF=\"(?<currentDigest>[0-9a-f]+)\""
+      ]
+    }
+  ],
+  "postUpgradeTasks": {
+    "commands": ["bash scripts/update-vendored-skills.sh"],
+    "fileFilters": ["dot_claude/skills/**"],
+    "executionMode": "branch"
+  }
+}

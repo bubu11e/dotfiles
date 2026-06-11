@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+
+# Secrets (defense-in-depth; gitleaks scans commits as the primary control)
+.env
+*.key
+*.pem
+*.enc
+
+# chezmoi local state (should never be committed)
+.chezmoistate.boltdb
+
+# Local-only scratch notes, not part of the deployed dotfiles
+TODO.md

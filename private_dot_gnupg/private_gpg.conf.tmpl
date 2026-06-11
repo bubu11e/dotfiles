@@ -1,0 +1,5 @@
+auto-key-retrieve
+no-emit-version
+{{- if .git.signingkey }}
+default-key {{ .git.signingkey }}
+{{- end }}

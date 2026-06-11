@@ -1,0 +1,5 @@
+# Managed by chezmoi. Per-host entries live in ~/.ssh/config.local (not in repo).
+Include config.local
+
+Host *
+    AddKeysToAgent yes

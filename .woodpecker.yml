@@ -1,0 +1,22 @@
+---
+steps:
+  - name: pre-commit
+    image: docker-registry.home.mpli.fr/pre-commit:latest
+    pull: true
+    commands:
+      - pre-commit run --all-files
+
+  - name: chezmoi-check
+    image: alpine:3.24
+    commands:
+      - apk add --no-cache curl git
+      - sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
+      # Render every template to catch template/syntax errors before they reach a
+      # real machine. --promptDefaults uses each prompt's default value, so the
+      # machine profile stays defined only in .chezmoi.toml.tmpl — adding a prompt
+      # never requires touching this step. --dry-run writes nothing.
+      - chezmoi init --source="$CI_WORKSPACE" --promptDefaults
+      - chezmoi apply --dry-run --verbose --source="$CI_WORKSPACE"
+
+when:
+  event: [push, manual]

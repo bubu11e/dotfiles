@@ -1,0 +1,42 @@
+---
+GOOSE_PROVIDER: {{ .goose.provider }}
+GOOSE_MODEL: {{ .goose.model }}
+GOOSE_PLANNER_PROVIDER: {{ .goose.plannerProvider }}
+GOOSE_PLANNER_MODEL: {{ .goose.plannerModel }}
+GOOSE_TELEMETRY_ENABLED: false
+GOOSE_MODE: approve
+SECURITY_PROMPT_ENABLED: true
+SECURITY_PROMPT_THRESHOLD: 0.9
+extensions:
+  developer:
+    enabled: true
+    name: developer
+    type: builtin
+    description: Shell command execution, file editing, and directory traversal
+    timeout: 300
+    bundled: true
+    available_tools: []
+  skills:
+    enabled: true
+    name: skills
+    type: platform
+    description: Reusable skills the agent can invoke
+    timeout: 300
+    bundled: true
+    available_tools: []
+  todo:
+    enabled: true
+    name: todo
+    type: platform
+    description: Task tracking and todo management
+    timeout: 300
+    bundled: true
+    available_tools: []
+  extensionmanager:
+    enabled: true
+    name: extensionmanager
+    type: platform
+    description: Enable and manage other extensions at runtime
+    timeout: 300
+    bundled: true
+    available_tools: []

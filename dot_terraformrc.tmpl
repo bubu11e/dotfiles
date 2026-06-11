@@ -1,0 +1,27 @@
+# Share downloaded providers across projects instead of re-fetching per init.
+plugin_cache_dir = "$HOME/.terraform.d/plugin-cache"
+# Disable the HashiCorp Checkpoint service: no version-check call or anonymous
+# usage report on every run (quieter, no outbound dependency, no telemetry).
+# Version nags are redundant since versions are pinned via tfenv.
+disable_checkpoint = true
+
+provider_installation {
+  # Local dev builds: uncomment and point a provider at a local binary dir.
+  dev_overrides {
+    # "registry.terraform.io/hashicorp/aws" = "$HOME/go/bin"
+  }
+{{- if .terraform.networkMirrorUrl }}
+
+  network_mirror {
+    url = "{{ .terraform.networkMirrorUrl }}"
+  }
+{{- end }}
+
+  direct {
+{{- if .terraform.directExclude }}
+    exclude = {{ .terraform.directExclude | toJson }}
+{{- else }}
+    # exclude = ["registry.terraform.io/*/*"]
+{{- end }}
+  }
+}

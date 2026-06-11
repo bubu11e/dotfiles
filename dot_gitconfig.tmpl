@@ -1,0 +1,60 @@
+[user]
+    email = {{ .git.email }}
+    name = {{ .git.name }}
+{{- if .git.signingkey }}
+    signingkey = {{ .git.signingkey }}
+{{- end }}
+
+[core]
+    # Use vim for commit messages, rebases, etc. (Git defaults to vi)
+    editor = vim
+    # Global ignore patterns applied to every repository
+    excludesfile = ~/.gitignore
+
+[apply]
+    # Strip trailing whitespace and fix indentation when applying patches
+    whitespace = fix
+
+[help]
+    # Auto-run a mistyped command after a 0.1s delay (e.g. "git stauts")
+    autocorrect = 1
+
+[push]
+    # Push the current branch to a same-named branch on the remote
+    default = current
+
+[pull]
+    # Rebase local commits on top of the upstream instead of merging
+    rebase = true
+
+[remote "origin"]
+    # Drop local remote-tracking refs that no longer exist on origin
+    prune = true
+
+[credential]
+    # Cache credentials in memory for 1 hour (default cache timeout is 15 min)
+    helper = cache --timeout=3600
+
+[commit]
+    # Sign every commit by default
+    gpgsign = true
+
+[gpg]
+    # Use the gpg2 binary for commit/tag signing (Git defaults to "gpg")
+    program = gpg2
+
+[alias]
+    br = branch
+    ci = commit
+    co = checkout
+    ls = ls-files
+    st = status
+    tags = tag -l
+    # One commit per line, most recent first
+    lg = log --oneline
+    # Delete every local branch except the long-lived ones
+    cbr = "!git branch | grep -vE '^[ *+]+(master|main|prod|production)$' | xargs -r git branch -D"
+
+[include]
+    # Machine-specific overrides, kept out of version control (read last)
+    path = ~/.gitconfig.local

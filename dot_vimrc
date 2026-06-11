@@ -1,0 +1,38 @@
+" Enable syntax highlighting based on the detected file type
+syntax on
+
+" Detect file types, load their filetype plugins, and apply filetype-specific
+" indentation rules
+filetype plugin indent on
+
+" Highlight every match of the most recent search
+set hlsearch
+
+" Search case-insensitively by default...
+set ignorecase
+" ...but become case-sensitive when the pattern contains an uppercase letter
+set smartcase
+
+" Do not keep a backup of the file while editing
+set nobackup
+" Do not make a temporary backup just before overwriting a file
+set nowritebackup
+" Do not create swapfiles (no .swp recovery files left around)
+set noswapfile
+
+" Show the absolute number on the current line...
+set number
+" ...and relative numbers on the other lines (hybrid numbering for quick j/k jumps)
+set relativenumber
+
+" Render a literal tab as 2 columns wide
+set tabstop=2
+" Tab/Backspace insert or delete in 2-column steps while editing
+set softtabstop=2
+" Indentation commands (>>, <<, autoindent) move by 2 spaces
+set shiftwidth=2
+" Insert tabs at the start of a line according to shiftwidth, not tabstop
+set smarttab
+
+" Expand the Tab key into spaces instead of inserting a literal tab character
+set expandtab

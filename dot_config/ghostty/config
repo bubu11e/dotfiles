@@ -1,0 +1,35 @@
+# Adaptive theme: Alabaster in light mode, Catppuccin Mocha in dark mode.
+# Ghostty switches automatically based on the macOS appearance setting.
+theme = light:Alabaster,dark:Catppuccin Mocha
+
+# Nerd Font variant required for icons and glyphs used by Starship and Neovim.
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 14
+
+# Initial window dimensions in columns/rows, with symmetric inner padding in pixels.
+window-height = 50
+window-width = 105
+window-padding-x = 8
+window-padding-y = 8
+
+# Propagate SSH environment variables and terminfo to remote hosts automatically,
+# so the correct terminal capabilities are available in SSH sessions.
+shell-integration-features = ssh-env,ssh-terminfo
+
+# Hide the cursor while typing to reduce visual clutter.
+mouse-hide-while-typing = true
+# Warn before pasting content that looks like it contains escape sequences.
+clipboard-paste-protection = true
+# Automatically copy any selection to the system clipboard.
+copy-on-select = clipboard
+
+# Use the native macOS titlebar instead of Ghostty's custom one.
+macos-titlebar-style = native
+# Treat the right Option key as Alt for Meta keybindings, while leaving the
+# left Option free for macOS dead-key composition (e.g. Option+N -> ~ on AZERTY).
+macos-option-as-alt = right
+# Exit Ghostty when the last window is closed, matching standard macOS app behavior.
+quit-after-last-window-closed = true
+
+# Send ESC + CR on Shift+Enter, enabling newline-without-submit in supported apps (e.g. Claude Code).
+keybind = shift+enter=text:\x1b\r

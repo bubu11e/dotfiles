@@ -1,0 +1,212 @@
+# Managed by chezmoi. Edit the source: `chezmoi edit ~/.zshrc`.
+# Consolidated from the former Ansible blockinfile sections (homebrew, neovim,
+# zsh, completion, plugins, starship, fzf, mise, golang, kubectl, ssh, gpg, docker).
+
+# --- homebrew ---
+# Homebrew is installed to a non-standard ~/.homebrew prefix (no root required).
+# Initialize it first so `brew` and brew-installed tools are on PATH for the rest
+# of this file. Guarded so a fresh machine without Homebrew yet does not error.
+if [[ -x "$HOME/.homebrew/bin/brew" ]]; then
+  eval "$("$HOME/.homebrew/bin/brew" shellenv)"
+  # Resolve the prefix once and reuse it below, instead of forking `brew` on
+  # every reference during shell startup.
+  BREW_PREFIX="$(brew --prefix)"
+  # compinit flags group-/other-writable dirs in $fpath as insecure. Only pay
+  # for the recursive chmod when something is actually writable: the find probe
+  # stops at the first offender (-quit), so the already-tightened common case is
+  # a cheap no-op instead of a full recursive write on every shell start.
+  if [[ -n "$(find "$BREW_PREFIX/share/zsh" \( -perm -020 -o -perm -002 \) -print -quit 2>/dev/null)" ]]; then
+    chmod -R go-w "$BREW_PREFIX/share/zsh"
+  fi
+fi
+
+# --- editor ---
+# Use neovim as the default editor.
+alias vi="nvim"
+alias vim="nvim"
+export EDITOR=nvim
+
+# --- path ---
+# User-local binaries (pipx apps, hand-installed scripts) take precedence on PATH.
+[[ -d "$HOME/.local/bin" ]] && export PATH="$HOME/.local/bin:$PATH"
+# Prefer GNU sed over the macOS BSD sed when the gnu-sed brew formula is installed.
+GNU_SED_BIN="$HOME/.homebrew/opt/gnu-sed/libexec/gnubin"
+[[ -d "$GNU_SED_BIN" ]] && export PATH="$GNU_SED_BIN:$PATH"
+# LM Studio CLI (`lms`), appended so it never shadows earlier PATH entries.
+[[ -d "$HOME/.lmstudio/bin" ]] && export PATH="$PATH:$HOME/.lmstudio/bin"
+
+# --- aliases ---
+# Route `pre-commit` to prek (this project's pre-commit runner) when installed.
+command -v prek &>/dev/null && alias pre-commit=prek
+
+# --- locale ---
+# Set locale to ensure consistent UTF-8 encoding across all tools and commands.
+# Only export if not already set to the desired value.
+[[ "$LANG" != "en_US.UTF-8" ]] && export LANG=en_US.UTF-8
+[[ "$LC_ALL" != "en_US.UTF-8" ]] && export LC_ALL=en_US.UTF-8
+
+# --- history ---
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000000
+SAVEHIST=10000000
+setopt BANG_HIST                 # Treat the '!' character specially during expansion.
+setopt EXTENDED_HISTORY          # Write the history file in the ":start:elapsed;command" format.
+setopt INC_APPEND_HISTORY        # Write to the history file immediately, not when the shell exits.
+setopt SHARE_HISTORY             # Share history between all sessions.
+setopt HIST_EXPIRE_DUPS_FIRST    # Expire duplicate entries first when trimming history.
+setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again.
+setopt HIST_IGNORE_ALL_DUPS      # Delete old recorded entry if new entry is a duplicate.
+setopt HIST_FIND_NO_DUPS         # Do not display a line previously found.
+setopt HIST_IGNORE_SPACE         # Don't record an entry starting with a space.
+setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history file.
+setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
+setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
+setopt HIST_BEEP                 # Beep when accessing nonexistent history.
+setopt NO_FLOW_CONTROL           # Disable Ctrl+S/Ctrl+Q flow control, freeing them for other bindings.
+
+# --- completion ---
+# Ensure Homebrew's completion functions are on $fpath before compinit scans it.
+# `brew shellenv` already does this, but re-asserting it idempotently guards
+# against ordering surprises. The dir is only added when Homebrew is present.
+[[ -n "$BREW_PREFIX" ]] && fpath=("$BREW_PREFIX/share/zsh/site-functions" $fpath)
+# Register compinit for lazy loading — only loaded from disk on first call.
+autoload -Uz compinit
+# Initialize the completion system, scanning $fpath for completion functions
+# and building the ~/.zcompdump cache.
+compinit
+
+# Reuse bundled completers for binaries zsh has no dedicated function for:
+# nvim shares vim's interface, and GNU sed (gsed) shares sed's. compdef is only
+# available after compinit, and binds harmlessly even if the binary is absent.
+compdef nvim=vim
+compdef gsed=sed
+
+# When completing a command name, present candidates in this order:
+# aliases first, then builtins, shell functions, and finally external commands.
+zstyle ':completion:*:-command-:*' group-order aliases builtins functions commands
+
+# Fuzzy matching strategy — tried in order until candidates are found:
+#   1. exact match
+#   2. case-insensitive match (foo -> Foo, FOO)
+#   3. partial match on delimiters (z.t -> zsh.toml)
+#   4. substring match from either end (oo -> foobar)
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# --- plugins ---
+# Load order matters: autosuggestions, then syntax-highlighting (wraps ZLE widgets,
+# must come after compinit and other plugins), then history-substring-search
+# (its keybindings must be set up after syntax-highlighting).
+
+# Suggests commands inline as you type, based on history and completions.
+ZSH_AUTOSUGGESTIONS="${BREW_PREFIX}/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[[ -f "$ZSH_AUTOSUGGESTIONS" ]] && source "$ZSH_AUTOSUGGESTIONS"
+
+# Colorizes the command line as you type: green for valid commands, red for unknown ones.
+ZSH_SYNTAX_HIGHLIGHTING="${BREW_PREFIX}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+[[ -f "$ZSH_SYNTAX_HIGHLIGHTING" ]] && source "$ZSH_SYNTAX_HIGHLIGHTING"
+
+# Search history by substring using the arrow keys. Must be sourced after compinit
+# and zsh-syntax-highlighting.
+ZSH_HISTORY_SUBSTRING_SEARCH="${BREW_PREFIX}/share/zsh-history-substring-search/zsh-history-substring-search.zsh"
+if [[ -f "$ZSH_HISTORY_SUBSTRING_SEARCH" ]]; then
+  source "$ZSH_HISTORY_SUBSTRING_SEARCH"
+  bindkey '^[[A' history-substring-search-up
+  bindkey '^[[B' history-substring-search-down
+fi
+
+# --- prompt ---
+# Guard on starship being present so a machine without it does not print
+# "command not found" on every shell start (see README invariant).
+if command -v starship &>/dev/null; then
+  eval "$(starship init zsh)"
+fi
+
+# --- keybindings ---
+# Ctrl+R reverse history search. fzf replaces this with its fuzzy-history widget
+# when loaded below; this binding is the fallback on machines without fzf.
+bindkey '^r' history-incremental-search-backward
+
+# --- fzf ---
+# Load fzf key bindings and completion only if the binary is available.
+# Enables: Ctrl+R (history), Ctrl+T (file search), Alt+C (cd into directory).
+if command -v fzf &>/dev/null; then
+  source <(fzf --zsh)
+fi
+
+# --- mise ---
+# Activate mise only if the binary is available, to avoid errors on systems
+# where mise is not installed.
+if command -v mise &>/dev/null; then
+  eval "$(mise activate zsh)"
+  # Shell completion; the generated script self-registers via compdef, so it is
+  # fine to source after compinit.
+  eval "$(mise completion zsh)"
+fi
+
+# --- golang ---
+# Add Go binaries to PATH only if go is available.
+if command -v go &>/dev/null; then
+  # GOPATH is the workspace root for Go modules and installed binaries.
+  export GOPATH="$HOME/go"
+  # Add go-installed binaries (e.g. tools installed with `go install`) to PATH.
+  export PATH="$PATH:$GOPATH/bin"
+fi
+
+# --- tool completion helper ---
+# docker and podman both expose `<tool> completion zsh` and share the identical
+# guard-and-source shape, so route them through one helper. (This is a narrower
+# case than the activation helper ADR-0001 rejected: a plain source of a
+# generated script, no `eval` of a command string.) The generated scripts
+# self-register via compdef, so sourcing them after compinit is fine, and the
+# guard means an absent binary is skipped rather than erroring.
+function _tool_completion {
+  command -v "$1" &>/dev/null && source <("$1" completion zsh)
+}
+
+# --- kubectl ---
+# Inlined rather than routed through _tool_completion: kubectl also needs the
+# alias + compdef, so a single guard does completion and alias in one probe.
+if command -v kubectl &>/dev/null; then
+  source <(kubectl completion zsh)
+  # Short alias, with completion bound to it as well.
+  alias k=kubectl
+  compdef k=kubectl
+fi
+
+# --- docker ---
+_tool_completion docker
+{{- if .docker.socketPath }}
+# Point the docker CLI (and DOCKER_HOST-aware clients) at a custom socket. Guarded
+# on the prompted path, independently of whether the docker binary is installed.
+export DOCKER_HOST='{{ .docker.socketPath }}'
+{{- end }}
+
+# --- podman ---
+_tool_completion podman
+
+# --- ssh agent ---
+# Reuse an existing ssh-agent session or start a new one.
+# The agent environment (socket path + PID) is persisted to ~/.ssh/agent.env
+# so it can be reused across shell sessions.
+SSH_ENV="$HOME/.ssh/agent.env"
+
+function _ssh_start_agent {
+  ssh-agent | sed 's/^echo/#echo/' > "$SSH_ENV"
+  chmod 600 "$SSH_ENV"
+  source "$SSH_ENV" > /dev/null
+}
+
+if [[ -f "$SSH_ENV" ]]; then
+  # Source the existing agent environment and check if the agent process is still alive.
+  source "$SSH_ENV" > /dev/null
+  ps -p "$SSH_AGENT_PID" > /dev/null 2>&1 || _ssh_start_agent
+else
+  _ssh_start_agent
+fi
+
+# --- gpg ---
+# Only export GPG_TTY when gpg is installed, keeping every snippet consistent
+# with the "guard on the tool being present" invariant.
+if command -v gpg &>/dev/null; then
+  export GPG_TTY=$(tty)
+fi

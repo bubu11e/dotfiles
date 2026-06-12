@@ -210,3 +210,9 @@ fi
 if command -v gpg &>/dev/null; then
   export GPG_TTY=$(tty)
 fi
+
+# --- local overrides ---
+# Source a host-specific file last so it can override anything above. This file
+# is intentionally not managed by chezmoi, keeping per-machine tweaks out of the
+# shared dotfiles. Guarded on existence so a machine without it does not error.
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

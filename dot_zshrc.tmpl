@@ -190,18 +190,16 @@ _tool_completion podman
 # so it can be reused across shell sessions.
 SSH_ENV="$HOME/.ssh/agent.env"
 
-function _ssh_start_agent {
-  ssh-agent | sed 's/^echo/#echo/' > "$SSH_ENV"
+[[ -f "$SSH_ENV" ]] && source "$SSH_ENV" > /dev/null
+
+# Start an agent only when none is reachable. `ssh-add -l` exits 2 when it cannot
+# reach an agent (none running, stale socket, or a recycled PID); 0 or 1 both mean
+# the agent answered, so reuse it.
+ssh-add -l &>/dev/null
+if [[ $? -eq 2 ]]; then
+  ssh-agent | sed '/^echo/d' >| "$SSH_ENV"
   chmod 600 "$SSH_ENV"
   source "$SSH_ENV" > /dev/null
-}
-
-if [[ -f "$SSH_ENV" ]]; then
-  # Source the existing agent environment and check if the agent process is still alive.
-  source "$SSH_ENV" > /dev/null
-  ps -p "$SSH_AGENT_PID" > /dev/null 2>&1 || _ssh_start_agent
-else
-  _ssh_start_agent
 fi
 
 # --- gpg ---

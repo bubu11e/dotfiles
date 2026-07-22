@@ -14,7 +14,7 @@
 set -euo pipefail
 
 # renovate: datasource=git-refs depName=mattpocock/skills packageName=https://github.com/mattpocock/skills branch=main
-UPSTREAM_REF="272f99b22574f50e4266791c86b9302682970e23"
+UPSTREAM_REF="ed37663cc5fbef691ddfecd080dff42f7e7e350d"
 
 UPSTREAM_REPO="mattpocock/skills"
 UPSTREAM_SUBPATH="skills/engineering"

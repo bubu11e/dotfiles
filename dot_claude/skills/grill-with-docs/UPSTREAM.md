@@ -3,8 +3,8 @@
 Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) —
 `skills/engineering/grill-with-docs`.
 
-- Pinned commit: `272f99b22574f50e4266791c86b9302682970e23`
-- Retrieved: 2026-07-04
+- Pinned commit: `ed37663cc5fbef691ddfecd080dff42f7e7e350d`
+- Retrieved: 2026-07-22
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 
 ## License

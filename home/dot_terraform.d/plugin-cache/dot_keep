@@ -1,0 +1,6 @@
+# Placeholder so chezmoi creates ~/.terraform.d/plugin-cache.
+#
+# home/dot_terraformrc.tmpl sets plugin_cache_dir to this path, and terraform
+# does NOT create it: when the directory is missing it silently skips caching
+# and re-downloads every provider on each `terraform init`. chezmoi has no way
+# to declare a bare empty directory, so this file is what materialises it.

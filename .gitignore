@@ -25,3 +25,6 @@ __pycache__/
 
 # Local-only scratch notes, not part of the deployed dotfiles
 TODO.md
+
+# Claude Code local permission state (machine-local, generated)
+.claude/settings.local.json

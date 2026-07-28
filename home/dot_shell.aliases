@@ -1,0 +1,24 @@
+# Managed by chezmoi. Edit the source: `chezmoi edit ~/.shell.aliases`.
+#
+# Cross-shell aliases, POSIX sh only. Sourced by the interactive rc of each shell
+# (~/.zshrc and ~/.bashrc), never by the env layer — aliases are useless to
+# non-interactive shells and bash does not expand them there anyway.
+
+alias vi="vim"
+
+# Route `pre-commit` to prek, this setup's pre-commit runner.
+command -v prek >/dev/null 2>&1 && alias pre-commit=prek
+
+# Colored ls: GNU coreutils (Linux) uses --color, BSD ls on macOS uses -G. Branch on
+# $OSTYPE, which both bash and zsh set for free — `uname -s` would cost a fork on
+# every shell start, and probing `ls` itself would cost two.
+case "${OSTYPE:-}" in
+    linux*)  alias ls='ls --color=auto' ;;
+    darwin*) alias ls='ls -G' ;;
+esac
+
+alias ll='ls -l'
+alias la='ls -A'
+
+# --- local overrides ---
+[ -f "$HOME/.shell.aliases.local" ] && . "$HOME/.shell.aliases.local"

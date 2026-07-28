@@ -1,0 +1,27 @@
+# Managed by chezmoi. Edit the source: `chezmoi edit ~/.zshenv`.
+#
+# Sourced for EVERY zsh invocation, including non-interactive ones: `zsh -c ...`,
+# git hooks, IDE subprocesses, editor `:!` shells. This file is the zsh-specific
+# wrapper around the cross-shell environment in ~/.shell.env; anything that is not
+# zsh syntax belongs there, so bash gets it too. Interactive setup goes in ~/.zshrc.
+
+# Deduplicate $PATH and $fpath, keeping the leftmost occurrence of each entry.
+# Set before sourcing ~/.shell.env so its PATH work is deduplicated as it happens.
+typeset -U path fpath
+
+# --- cross-shell environment ---
+[[ -f "$HOME/.shell.env" ]] && source "$HOME/.shell.env"
+
+# --- zsh-only completion path ---
+# ~/.shell.env runs `brew shellenv sh`, whose POSIX output deliberately omits the
+# `fpath[1,0]=...` line that the zsh flavour emits. Add it back here: this dir is
+# what serves _kubectl, _podman, _mise, _prek and friends to compinit, and it is
+# why none of them needs a `<tool> completion zsh` fork at startup.
+if [[ -n "$HOMEBREW_PREFIX" && -d "$HOMEBREW_PREFIX/share/zsh/site-functions" ]]; then
+  fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
+fi
+
+# --- local overrides ---
+# Host-specific environment, intentionally not managed by chezmoi. Sourced last so
+# it can override anything above.
+[[ -f "$HOME/.zshenv.local" ]] && source "$HOME/.zshenv.local"

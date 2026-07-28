@@ -1,15 +1,14 @@
 # Upstream provenance
 
-Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) —
-`skills/engineering/improve-codebase-architecture`.
+Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) — `skills/engineering/improve-codebase-architecture`.
 
 - Pinned commit: `ed37663cc5fbef691ddfecd080dff42f7e7e350d`
-- Retrieved: 2026-07-22
+- Retrieved: 2026-07-28
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 
 ## License
 
-Upstream is distributed under the MIT License:
+Verbatim copy of `LICENSE` from the upstream repository at the pinned commit:
 
 ```
 MIT License

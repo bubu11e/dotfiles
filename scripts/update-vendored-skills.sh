@@ -20,7 +20,7 @@ UPSTREAM_REPO="mattpocock/skills"
 UPSTREAM_SUBPATH="skills/engineering"
 RAW_BASE="https://raw.githubusercontent.com/${UPSTREAM_REPO}/${UPSTREAM_REF}/${UPSTREAM_SUBPATH}"
 TREE_URL="https://api.github.com/repos/${UPSTREAM_REPO}/git/trees/${UPSTREAM_REF}?recursive=1"
-SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/dot_claude/skills"
+SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/home/dot_claude/skills"
 RETRIEVED="$(date -u +%Y-%m-%d)"
 
 # The curated set. Their file lists are read from upstream, not stated here.

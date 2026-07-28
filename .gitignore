@@ -18,5 +18,13 @@ Thumbs.db
 # chezmoi local state (should never be committed)
 .chezmoistate.boltdb
 
+# Python bytecode from vendored skills that ship scripts (caveman-compress runs
+# `python3 -m scripts` from its own directory, which writes bytecode in place).
+__pycache__/
+*.pyc
+
 # Local-only scratch notes, not part of the deployed dotfiles
 TODO.md
+
+# Claude Code local permission state (machine-local, generated)
+.claude/settings.local.json

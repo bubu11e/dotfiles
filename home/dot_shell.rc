@@ -1,0 +1,40 @@
+# Managed by chezmoi. Edit the source: `chezmoi edit ~/.shell.rc`.
+#
+# Cross-shell *interactive* setup, POSIX sh only. Sourced by ~/.zshrc and
+# ~/.bashrc. This is the third shared layer, and the split between the three is
+# by when the shell reads them, not by topic:
+#
+#   ~/.shell.env      every invocation, interactive or not  -> exports, PATH
+#   ~/.shell.aliases  interactive only                      -> aliases
+#   ~/.shell.rc       interactive only                      -> this file
+#
+# Anything needing zsh or bash syntax stays in that shell's own rc.
+
+# --- ssh agent ---
+# Reuse an existing agent or start one, persisting its socket and PID to
+# ~/.ssh/agent.env so every later shell — of either shell family — finds the same
+# agent instead of spawning its own.
+SSH_ENV="$HOME/.ssh/agent.env"
+[ -f "$SSH_ENV" ] && . "$SSH_ENV" >/dev/null
+
+# `ssh-add -l` exits 2 when it cannot reach an agent at all (none running, stale
+# socket, or a recycled PID). 0 and 1 both mean the agent answered — 1 is just an
+# empty keyring — so those reuse it.
+ssh-add -l >/dev/null 2>&1
+if [ $? -eq 2 ]; then
+    # Drop the `echo Agent pid ...` line so sourcing the file stays silent.
+    ssh-agent | sed '/^echo/d' > "$SSH_ENV"
+    chmod 600 "$SSH_ENV"
+    . "$SSH_ENV" >/dev/null
+fi
+
+# --- gpg ---
+# gpg-agent needs to know which terminal to prompt on, and that differs per shell
+# instance, so it cannot live in the env layer.
+if command -v gpg >/dev/null 2>&1; then
+    GPG_TTY=$(tty)
+    export GPG_TTY
+fi
+
+# --- local overrides ---
+[ -f "$HOME/.shell.rc.local" ] && . "$HOME/.shell.rc.local"

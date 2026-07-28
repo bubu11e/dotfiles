@@ -1,0 +1,9 @@
+# Follow the terminal's own 16-color palette instead of carrying a fixed theme.
+# Ghostty is configured adaptively (light:Alabaster, dark:Catppuccin Mocha, see
+# dot_config/ghostty/config), so any theme pinned here would be legible in one
+# macOS appearance and wrong in the other. "ansi" tracks whichever is active.
+--theme="ansi"
+
+# Line numbers and git-modification marks, without the surrounding grid/header —
+# keeps output pasteable.
+--style="numbers,changes"

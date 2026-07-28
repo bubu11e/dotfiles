@@ -1,0 +1,7 @@
+# Managed by chezmoi. Edit the source: `chezmoi edit ~/.bash_profile`.
+#
+# Login shells read this file and ignore ~/.bashrc; non-login interactive shells do
+# the opposite. macOS opens a login shell for every terminal window, Linux usually
+# does not, so the whole configuration lives in ~/.bashrc and this file only
+# forwards to it. That way both platforms converge on one file.
+[ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"

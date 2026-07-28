@@ -1,0 +1,130 @@
+# Managed by chezmoi. Edit the source: `chezmoi edit ~/.bashrc`.
+#
+# Layering: ~/.shell.env (POSIX env, shared with zsh) <- this file <-
+# ~/.shell.aliases and ~/.shell.rc (POSIX, shared with zsh). An export belongs in
+# ~/.shell.env.
+#
+# Target is Linux (bash 5.x). macOS is a secondary target and still ships bash 3.2,
+# so the handful of 4.0+ options below are guarded — an unknown `shopt` name is not
+# fatal there, but it prints "invalid shell option name" to stderr on every start.
+# Everything else here is 3.2-safe.
+
+# Environment first, and deliberately *before* the interactivity guard below:
+# bash sources ~/.bashrc for the non-interactive shell behind `ssh host 'cmd'`, and
+# that shell still needs a usable PATH.
+[ -f "$HOME/.shell.env" ] && . "$HOME/.shell.env"
+
+# Everything past this point is interactive-only.
+case $- in
+    *i*) ;;
+    *) return ;;
+esac
+
+# --- path precedence ---
+# macOS runs path_helper from /etc/profile after ~/.shell.env in login shells,
+# demoting the user-local dirs below /usr/bin. Re-assert them; the function moves
+# entries to the front rather than duplicating them.
+command -v _dotfiles_user_path >/dev/null 2>&1 && _dotfiles_user_path
+
+# --- aliases ---
+[ -f "$HOME/.shell.aliases" ] && . "$HOME/.shell.aliases"
+
+# --- shell options ---
+shopt -s histappend            # append to the history file instead of truncating it
+shopt -s checkwinsize          # keep $LINES/$COLUMNS correct after each command
+shopt -s histverify            # show an expanded !-history line instead of running it
+shopt -s cdspell               # fix small typos in `cd` arguments
+shopt -s no_empty_cmd_completion  # do not scan $PATH when TAB is pressed on an empty line
+
+# bash 4.0+ only (see the header note about macOS 3.2).
+if ((BASH_VERSINFO[0] >= 4)); then
+    shopt -s globstar          # ** matches paths recursively
+    shopt -s autocd            # a bare directory name cds into it (zsh AUTO_CD)
+    shopt -s dirspell          # fix directory-name typos during completion
+    shopt -s checkjobs         # warn about running jobs before exiting
+fi
+
+# --- history ---
+# Mirrors the zsh side's intent: no duplicates, nothing prefixed with a space,
+# timestamps recorded, and a large scrollback.
+HISTCONTROL=ignoreboth:erasedups
+HISTSIZE=100000
+HISTFILESIZE=200000
+HISTTIMEFORMAT='%F %T '
+
+# Share history between concurrent shells, which zsh gets from SHARE_HISTORY:
+# flush this shell's new lines, then read back everyone else's, before each prompt.
+# Set *before* `starship init` on purpose — starship preserves an existing
+# PROMPT_COMMAND by stashing it in STARSHIP_PROMPT_COMMAND and re-running it inside
+# its own hook, so this survives. Setting it afterwards would clobber starship.
+PROMPT_COMMAND='history -a; history -n'
+
+# --- readline ---
+# Bring bash's line editing closer to the zsh setup.
+bind 'set completion-ignore-case on'     # matches the zsh matcher-list
+bind 'set show-all-if-ambiguous on'      # one TAB lists candidates, no second press
+bind '"\e[A": history-search-backward'   # arrows search on the current prefix,
+bind '"\e[B": history-search-forward'    # the closest thing to zsh-history-substring-search
+bind '"\C-w": unix-filename-rubout'      # ^W stops at path components, like WORDCHARS without "/"
+# colored-stats needs readline 6.3, i.e. bash 4.3+.
+((BASH_VERSINFO[0] >= 4)) && bind 'set colored-stats on'
+
+# --- completion ---
+# bash has no $fpath equivalent: completion functions are sourced, not autoloaded.
+# Try the usual locations in order — Homebrew's, then the distro's — and stop at
+# the first hit. Every path is guarded: a machine without bash-completion installed
+# simply gets bash's built-in completion.
+for _bc in \
+    "${HOMEBREW_PREFIX:-/nonexistent}/etc/profile.d/bash_completion.sh" \
+    /usr/share/bash-completion/bash_completion \
+    /etc/bash_completion
+do
+    if [ -r "$_bc" ]; then
+        # shellcheck disable=SC1090
+        . "$_bc"
+        break
+    fi
+done
+unset _bc
+
+# --- prompt ---
+# Same starship config as zsh (~/.config/starship.toml), so both shells render an
+# identical prompt. Guarded so a machine without it does not error on every start.
+command -v starship >/dev/null 2>&1 && eval "$(starship init bash)"
+
+# --- fzf ---
+# Key bindings and completion: Ctrl+R (history), Ctrl+T (files), Alt+C (cd).
+# `fzf --bash` needs fzf >= 0.48; on older builds the command fails and the eval
+# receives nothing, which is why stderr is discarded rather than guarded on version.
+if command -v fzf >/dev/null 2>&1; then
+    eval "$(fzf --bash 2>/dev/null)"
+fi
+
+# --- mise ---
+# Installs the per-directory tool-version hook. No static equivalent, so this stays
+# a fork, exactly as on the zsh side.
+command -v mise >/dev/null 2>&1 && eval "$(mise activate bash)"
+
+# --- kubectl ---
+# bash cannot autoload, so this is a real fork (~140ms) rather than the free $fpath
+# lookup zsh gets. Deferred to first use: the stub replaces itself with the real
+# command, so a shell that never types kubectl never pays.
+if command -v kubectl >/dev/null 2>&1; then
+    alias k=kubectl
+    kubectl() {
+        unset -f kubectl
+        # shellcheck disable=SC1090
+        source <(command kubectl completion bash)
+        complete -F __start_kubectl k
+        kubectl "$@"
+    }
+fi
+
+# --- cross-shell interactive setup ---
+# ssh-agent reuse and GPG_TTY, shared with zsh.
+[ -f "$HOME/.shell.rc" ] && . "$HOME/.shell.rc"
+
+# --- local overrides ---
+# Host-specific tweaks, intentionally not managed by chezmoi. Sourced last so it
+# can override anything above.
+[ -f "$HOME/.bashrc.local" ] && . "$HOME/.bashrc.local"

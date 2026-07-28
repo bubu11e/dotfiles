@@ -1,2 +1,15 @@
 [extend]
 useDefault = true
+
+# The skill-vendoring script pins each upstream repo to a 40-hex git SHA. For
+# CLOUDFLARE_SECURITY_AUDIT_REF the variable name places the word "cloudflare"
+# next to that value, which is shape-identical to a Cloudflare API key, so the
+# default cloudflare-api-key rule flags it. Scoped to that one rule, that one
+# file, and values that look like a pinned ref rather than a credential.
+[[allowlists]]
+description = "Pinned upstream git SHAs in the skill-vendoring script"
+targetRules = ["cloudflare-api-key"]
+matchCondition = "AND"
+paths = ['''^scripts/update-vendored-skills\.sh$''']
+regexTarget = "line"
+regexes = ['''^[A-Z0-9_]+_REF="[0-9a-f]{40}"$''']

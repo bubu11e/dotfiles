@@ -1,20 +1,19 @@
 # Upstream provenance
 
-Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) —
-`skills/engineering/improve-codebase-architecture`.
+Vendored from [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) — `skills/security-audit`.
 
-- Pinned commit: `ed37663cc5fbef691ddfecd080dff42f7e7e350d`
-- Retrieved: 2026-07-22
+- Pinned commit: `8bac42001ddd90a4dcd8d5a5045199283a8eba75`
+- Retrieved: 2026-07-28
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 
 ## License
 
-Upstream is distributed under the MIT License:
+Verbatim copy of `LICENSE` from the upstream repository at the pinned commit:
 
 ```
 MIT License
 
-Copyright (c) 2026 Matt Pocock
+Copyright (c) 2025-2026 Cloudflare, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

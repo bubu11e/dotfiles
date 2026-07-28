@@ -1,6 +1,13 @@
 ---
 extends: default
 
+# Vendored upstream skills are third-party content: we do not control their
+# style, and scripts/update-vendored-skills.sh wipes and refetches the tree, so
+# any local fix would be silently reverted on the next run. Lint our own YAML,
+# not theirs.
+ignore: |
+  home/dot_claude/skills/
+
 rules:
   line-length:
     max: 260

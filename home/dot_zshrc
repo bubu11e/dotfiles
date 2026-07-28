@@ -1,0 +1,166 @@
+# Managed by chezmoi. Edit the source: `chezmoi edit ~/.zshrc`.
+#
+# Interactive zsh only, and zsh-specific by design — compinit/compdef/zstyle,
+# bindkey, WORDCHARS and the (#q...) glob qualifier have no bash equivalent.
+#
+# Layering: ~/.shell.env (POSIX env, both shells) <- ~/.zshenv (zsh wrapper, every
+# invocation) <- this file (interactive) + ~/.shell.aliases (POSIX, both shells).
+# An export belongs in ~/.shell.env, not here: putting it in an rc is the bug the
+# split exists to prevent.
+
+# --- key bindings ---
+# zsh picks the vi keymap when $VISUAL or $EDITOR contains "vi" — and ~/.zshenv
+# sets EDITOR=vim, which silently put this shell in viins. Force emacs mode, and
+# do it before anything else binds a key.
+bindkey -e
+
+# Word boundaries for ^W / alt-backspace. zsh's default includes "/", which makes
+# ^W swallow a whole path; dropping it stops the kill at each path component.
+WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
+
+# --- path precedence ---
+# macOS runs path_helper from /etc/zprofile between ~/.zshenv and this file, which
+# demotes the user-local dirs below /usr/bin in login shells. Re-assert them; the
+# function is defined in ~/.shell.env and moves entries to the front rather than
+# duplicating them.
+(( $+functions[_dotfiles_user_path] )) && _dotfiles_user_path
+
+# --- options ---
+# Required by the (#q...) glob qualifier used by the compinit cache check below.
+setopt EXTENDED_GLOB
+
+# --- aliases ---
+# Shared with bash; zsh-only aliases (if any) go after the source line.
+[[ -f "$HOME/.shell.aliases" ]] && source "$HOME/.shell.aliases"
+
+# --- history ---
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000000
+SAVEHIST=10000000
+setopt BANG_HIST                 # Treat the '!' character specially during expansion.
+setopt EXTENDED_HISTORY          # Write the history file in the ":start:elapsed;command" format.
+setopt INC_APPEND_HISTORY        # Write to the history file immediately, not when the shell exits.
+setopt SHARE_HISTORY             # Share history between all sessions.
+setopt HIST_EXPIRE_DUPS_FIRST    # Expire duplicate entries first when trimming history.
+setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again.
+setopt HIST_IGNORE_ALL_DUPS      # Delete old recorded entry if new entry is a duplicate.
+setopt HIST_FIND_NO_DUPS         # Do not display a line previously found.
+setopt HIST_IGNORE_SPACE         # Don't record an entry starting with a space.
+setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history file.
+setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
+setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
+setopt HIST_BEEP                 # Beep when accessing nonexistent history.
+setopt NO_FLOW_CONTROL           # Disable Ctrl+S/Ctrl+Q flow control, freeing them for other bindings.
+
+# --- completion ---
+# Homebrew's site-functions dir is already on $fpath (brew shellenv, in ~/.zshenv).
+# It ships the completion functions for the tools installed here — kubectl, podman,
+# docker, mise, prek, starship, terraform... — so none of them needs a
+# `<tool> completion zsh` fork at startup. compinit picks them up from $fpath.
+#
+# compinit refuses to load functions from group-/other-writable dirs and prints
+# "insecure directories" instead. Only pay for the recursive chmod when something
+# is actually writable: the find probe stops at the first offender (-quit), so the
+# already-tightened common case is a cheap no-op rather than a full recursive write.
+if [[ -n "$HOMEBREW_PREFIX" ]] &&
+   [[ -n "$(find "$HOMEBREW_PREFIX/share/zsh" \( -perm -020 -o -perm -002 \) -print -quit 2>/dev/null)" ]]; then
+  chmod -R go-w "$HOMEBREW_PREFIX/share/zsh"
+fi
+
+# compinit's security audit of every $fpath dir is the expensive part, so run it in
+# full only when the dump is older than 24h and reuse the cache (-C) otherwise.
+autoload -Uz compinit
+if [[ -n "$HOME"/.zcompdump(#qNmh-24) ]]; then
+  compinit -C -d "$HOME/.zcompdump"
+else
+  compinit -d "$HOME/.zcompdump"
+  touch "$HOME/.zcompdump"
+fi
+
+# Reuse bundled completers for binaries with no dedicated function of their own:
+# nvim shares vim's interface, gsed shares sed's, and the aliases inherit the
+# completion of the command they point at. compdef is only available after
+# compinit, and binds harmlessly even if the binary is absent.
+compdef nvim=vim
+compdef gsed=sed
+compdef pre-commit=prek
+
+# When completing a command name, present candidates in this order:
+# aliases first, then builtins, shell functions, and finally external commands.
+zstyle ':completion:*:-command-:*' group-order aliases builtins functions commands
+
+# Fuzzy matching strategy — tried in order until candidates are found:
+#   1. exact match
+#   2. case-insensitive match (foo -> Foo, FOO)
+#   3. partial match on delimiters (z.t -> zsh.toml)
+#   4. substring match from either end (oo -> foobar)
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# --- plugins ---
+# Load order matters: autosuggestions, then syntax-highlighting (wraps ZLE widgets,
+# must come after compinit and other plugins), then history-substring-search
+# (its keybindings must be set up after syntax-highlighting).
+
+# Suggests commands inline as you type, based on history and completions.
+ZSH_AUTOSUGGESTIONS="${HOMEBREW_PREFIX}/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[[ -f "$ZSH_AUTOSUGGESTIONS" ]] && source "$ZSH_AUTOSUGGESTIONS"
+
+# Colorizes the command line as you type: green for valid commands, red for unknown ones.
+ZSH_SYNTAX_HIGHLIGHTING="${HOMEBREW_PREFIX}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+[[ -f "$ZSH_SYNTAX_HIGHLIGHTING" ]] && source "$ZSH_SYNTAX_HIGHLIGHTING"
+
+# Search history by substring using the arrow keys. Must be sourced after compinit
+# and zsh-syntax-highlighting.
+ZSH_HISTORY_SUBSTRING_SEARCH="${HOMEBREW_PREFIX}/share/zsh-history-substring-search/zsh-history-substring-search.zsh"
+if [[ -f "$ZSH_HISTORY_SUBSTRING_SEARCH" ]]; then
+  source "$ZSH_HISTORY_SUBSTRING_SEARCH"
+  bindkey '^[[A' history-substring-search-up
+  bindkey '^[[B' history-substring-search-down
+fi
+
+# --- prompt ---
+# Guard on starship being present so a machine without it does not print
+# "command not found" on every shell start (see README invariant).
+if command -v starship &>/dev/null; then
+  eval "$(starship init zsh)"
+fi
+
+# --- history search ---
+# Ctrl+R reverse history search. fzf replaces this with its fuzzy-history widget
+# when loaded below; this binding is the fallback on machines without fzf.
+bindkey '^r' history-incremental-search-backward
+
+# --- fzf ---
+# Key bindings and completion, only if the binary is available. There is no
+# site-functions equivalent for the widgets, so this fork is the only way in.
+# Enables: Ctrl+R (history), Ctrl+T (file search), Alt+C (cd into directory).
+if command -v fzf &>/dev/null; then
+  source <(fzf --zsh)
+fi
+
+# --- mise ---
+# Activation installs the precmd hook that swaps tool versions per directory; it
+# has no static equivalent, so it stays a fork. Completion does not: Homebrew's
+# _mise is already on $fpath.
+if command -v mise &>/dev/null; then
+  eval "$(mise activate zsh)"
+fi
+
+# --- kubectl ---
+# Completion comes from Homebrew's _kubectl on $fpath (the old
+# `source <(kubectl completion zsh)` cost 141ms per shell). Only the alias and its
+# compdef are set here.
+if command -v kubectl &>/dev/null; then
+  alias k=kubectl
+  compdef k=kubectl
+fi
+
+# --- cross-shell interactive setup ---
+# ssh-agent reuse and GPG_TTY, shared with bash.
+[[ -f "$HOME/.shell.rc" ]] && source "$HOME/.shell.rc"
+
+# --- local overrides ---
+# Source a host-specific file last so it can override anything above. This file
+# is intentionally not managed by chezmoi, keeping per-machine tweaks out of the
+# shared dotfiles. Guarded on existence so a machine without it does not error.
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

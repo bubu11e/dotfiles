@@ -1,27 +1,26 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+# Every module listed here is evaluated on every prompt, and the language-detection
+# modules do it by scanning the current directory. Keep the list to what is actually
+# read: the previous eleven ($c $rust $nodejs $php $java $kotlin $haskell $python
+# $conda ...) each paid a scan, and starship gives up with "Scanning current
+# directory timed out" once they exceed scan_timeout on a large or networked dir.
+# Anything configured below must also appear in this format string, or it is dead
+# config that never renders.
 format = """
 [](red)\
 $os\
 $username\
+$hostname\
 [](bg:peach fg:red)\
 $directory\
 [](bg:yellow fg:peach)\
 $git_branch\
 $git_status\
 [](fg:yellow bg:green)\
-$c\
-$rust\
 $golang\
-$nodejs\
-$php\
-$java\
-$kotlin\
-$haskell\
-$python\
-[](fg:green bg:sapphire)\
-$conda\
-[](fg:sapphire bg:lavender)\
+${env_var.VIRTUAL_ENV_PROMPT}\
+[](fg:green bg:lavender)\
 $time\
 [ ](fg:lavender)\
 $cmd_duration\
@@ -62,6 +61,15 @@ style_user = "bg:red fg:crust"
 style_root = "bg:red fg:crust"
 format = '[ $user]($style)'
 
+[hostname]
+# ssh_only (the default) keeps this silent on the local machine, where the host name
+# is a constant, and shows it in the same red block once the shell is on a remote
+# box — the case where confusing two terminals actually costs something.
+ssh_only = true
+ssh_symbol = "󰢹 "
+style = "bg:red fg:crust"
+format = '[@$ssh_symbol$hostname]($style)'
+
 [directory]
 style = "bg:peach fg:crust"
 format = "[ $path ]($style)"
@@ -81,71 +89,22 @@ style = "bg:yellow"
 format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
 always_show_remote = true
 
-[git_commit]
-tag_disabled = false
-
-[git_metrics]
-disabled = false
-
 [git_status]
 style = "bg:yellow"
 format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
-
-[nodejs]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[c]
-symbol = " "
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[rust]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
 
 [golang]
 symbol = ""
 style = "bg:green"
 format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
 
-[php]
-symbol = ""
+[env_var.VIRTUAL_ENV_PROMPT]
+# Replaces the built-in $python module. That module scans the working directory on
+# every prompt just to decide whether to render; venv already exports
+# VIRTUAL_ENV_PROMPT (e.g. "(myenv) "), so reading it costs nothing and still shows
+# the part that mattered here — which environment is active.
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[java]
-symbol = " "
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[kotlin]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[haskell]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
-
-[python]
-symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version)(\(#$virtualenv\)) ](fg:crust bg:green)]($style)'
-
-[docker_context]
-symbol = ""
-style = "bg:sapphire"
-format = '[[ $symbol( $context) ](fg:crust bg:sapphire)]($style)'
-
-[conda]
-symbol = "  "
-style = "fg:crust bg:sapphire"
-format = '[$symbol$environment ]($style)'
-ignore_base = false
+format = '[[ $env_value](fg:crust bg:green)]($style)'
 
 [time]
 disabled = false

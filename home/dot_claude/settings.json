@@ -1,0 +1,20 @@
+{
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true
+  },
+  "effortLevel": "high",
+  "theme": "dark-ansi",
+  "model": "opus",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf \"{\\\"systemMessage\\\":\\\"ANTHROPIC_BASE_URL=%s\\\"}\" \"${ANTHROPIC_BASE_URL:-<unset>}\""
+          }
+        ]
+      }
+    ]
+  }
+}

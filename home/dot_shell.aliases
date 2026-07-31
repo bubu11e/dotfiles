@@ -20,5 +20,7 @@ esac
 alias ll='ls -l'
 alias la='ls -A'
 
+command -v yq >/dev/null 2>&1 && alias myfuckingip='curl -s https://myip.wtf/yaml | yq'
+
 # --- local overrides ---
 [ -f "$HOME/.shell.aliases.local" ] && . "$HOME/.shell.aliases.local"

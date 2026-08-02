@@ -1,0 +1,13 @@
+# Keep the build context lean and reproducible. The frontend stage builds the PWA
+# fresh, so never ship a local internal/spa/dist or node_modules into the context.
+.git
+.gitignore
+**/node_modules
+internal/spa/dist
+
+# Local runtime artifacts and build output.
+/__NAME__
+config.yaml
+
+# CI config not needed to build the image.
+.woodpecker.yml

@@ -1,0 +1,11 @@
+---
+# __NAME__ configuration. Every value is overridable by a __ENV_PREFIX___* env var.
+
+server:
+  host: 0.0.0.0      # __ENV_PREFIX___HOST
+  port: __PORT__     # __ENV_PREFIX___PORT
+
+log_level: info      # debug | info | warn | error -- __ENV_PREFIX___LOG_LEVEL
+
+worker:
+  interval: 1h       # __ENV_PREFIX___WORKER_INTERVAL

@@ -1,0 +1,13 @@
+/__NAME__
+/config.yaml
+
+# Runtime data (single-instance SQLite storage)
+/__NAME__.db
+/__NAME__.db-wal
+/__NAME__.db-shm
+
+# Frontend
+/frontend/node_modules/
+/frontend/coverage/
+# Built PWA embedded into the binary; produced by `npm run build` in frontend/.
+/internal/spa/dist/

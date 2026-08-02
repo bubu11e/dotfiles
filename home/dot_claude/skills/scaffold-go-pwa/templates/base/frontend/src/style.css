@@ -1,0 +1,174 @@
+/* Design tokens. Both palettes are defined here and selected by <html data-theme>,
+   which theme.js sets from the user's preference or the OS. */
+:root,
+:root[data-theme='light'] {
+  --bg: __BG_COLOR__;
+  --surface: #ffffff;
+  --line: #e0d9cc;
+  --fg: #1c1a17;
+  --muted: #6b6459;
+  --accent: __ACCENT__;
+  --accent-fg: #ffffff;
+  --error: #b3261e;
+}
+
+:root[data-theme='dark'] {
+  --bg: __DARK_BG_COLOR__;
+  --surface: #26221c;
+  --line: #3a342c;
+  --fg: #f1ece4;
+  --muted: #a49a8c;
+  --accent: __ACCENT__;
+  --accent-fg: #ffffff;
+  --error: #f2b8b5;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Respect the notch on an installed PWA. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.mark {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+main {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.banner {
+  margin: 0.75rem 1.25rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.banner.error {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.build {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.build dt {
+  color: var(--muted);
+}
+
+.build dd {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+button {
+  font: inherit;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  cursor: pointer;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--line);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+input,
+select {
+  font: inherit;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+label span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.switch {
+  margin-top: 1rem;
+}
+
+form button[type='submit'] {
+  width: 100%;
+}

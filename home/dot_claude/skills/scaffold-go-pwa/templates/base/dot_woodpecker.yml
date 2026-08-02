@@ -1,0 +1,44 @@
+---
+when:
+  event: [push, manual]
+
+steps:
+  # Build the embedded PWA first: internal/spa/dist is gitignored, so without this
+  # the //go:embed all:dist directive has nothing to embed and every later Go step
+  # (golangci-lint in pre-commit, and the test build) fails to compile.
+  - name: frontend
+    image: node:24-alpine
+    commands:
+      - cd frontend
+      - npm ci
+      - npm run build
+      - npm test
+
+  - name: pre-commit
+    image: docker-registry.home.mpli.fr/pre-commit:latest
+    pull: true
+    commands:
+      - pre-commit run --all-files
+
+  - name: test
+    image: golang:1.26
+    commands:
+      - go mod tidy -diff
+      - go test -race ./...
+
+  - name: publish
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      repo: __REGISTRY__
+      registry: docker-registry.home.mpli.fr
+      username:
+        from_secret: docker_registry_username
+      password:
+        from_secret: docker_registry_password
+      tag: latest
+      # Pass the commit SHA by reading the runtime env var directly, so /version
+      # (and the build_info metric) report a real revision.
+      build_args_from_env:
+        - CI_COMMIT_SHA
+    when:
+      branch: main

@@ -1,0 +1,8 @@
+/__NAME__
+/config.yaml
+
+# Frontend
+/frontend/node_modules/
+/frontend/coverage/
+# Built PWA embedded into the binary; produced by `npm run build` in frontend/.
+/internal/spa/dist/

@@ -1,0 +1,24 @@
+---
+# __NAME__ configuration. Every value is overridable by a __ENV_PREFIX___* env var.
+
+server:
+  host: 0.0.0.0      # __ENV_PREFIX___HOST
+  port: __PORT__     # __ENV_PREFIX___PORT
+
+log_level: info      # debug | info | warn | error -- __ENV_PREFIX___LOG_LEVEL
+
+worker:
+  interval: 1m       # readiness heartbeat cadence -- __ENV_PREFIX___WORKER_INTERVAL
+
+storage:
+  db_path: __NAME__.db   # SQLite database file -- __ENV_PREFIX___DB_PATH
+
+auth:
+  session_ttl: 720h       # session lifetime -- __ENV_PREFIX___SESSION_TTL
+  secure_cookies: false   # set true when served over HTTPS -- __ENV_PREFIX___SECURE_COOKIES
+  # Development mode: password optional and accounts auto-verified (no
+  # verification email). Set false in production -- __ENV_PREFIX___DEV_MODE
+  dev_mode: true
+
+instance:
+  name: __TITLE__    # shown in the UI before sign-in -- __ENV_PREFIX___INSTANCE_NAME

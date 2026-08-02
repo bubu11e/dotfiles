@@ -3,8 +3,9 @@ extends: default
 
 # Vendored upstream skills are third-party content: we do not control their
 # style, and scripts/update-vendored-skills.sh wipes and refetches the tree, so
-# any local fix would be silently reverted on the next run. Lint our own YAML,
-# not theirs.
+# any local fix would be silently reverted on the next run. The same path also
+# holds scaffold templates, whose YAML is linted by the generated repo's own
+# .yamllint, not this one. Lint our own YAML, not either of those.
 ignore: |
   home/dot_claude/skills/
 

@@ -17,7 +17,10 @@
 {{- $goosePlannerProvider := promptStringOnce . "goose.plannerProvider" "Goose planner provider" "anthropic" -}}
 {{- $goosePlannerModel := promptStringOnce . "goose.plannerModel" "Goose planner model" "claude-opus-4-8" -}}
 {{- $tfMirror := promptStringOnce . "terraform.networkMirrorUrl" "Terraform network mirror URL (leave blank to skip)" "" -}}
-{{- $dockerSocket := promptStringOnce . "docker.socketPath" "Docker socket path for DOCKER_HOST (leave blank to skip)" "" }}
+{{- $dockerSocket := promptStringOnce . "docker.socketPath" "Docker socket path for DOCKER_HOST (leave blank to skip)" "" -}}
+{{- $forgejoHost := promptStringOnce . "forgejo.host" "Forgejo host for fj, no scheme (leave blank to skip)" "" -}}
+{{- $forgejoClientId := promptStringOnce . "forgejo.oauthClientId" "Forgejo OAuth2 client id for fj (leave blank to skip)" "" -}}
+{{- $woodpeckerServer := promptStringOnce . "woodpecker.server" "Woodpecker server URL for WOODPECKER_SERVER (leave blank to skip)" "" }}
 # Apply a 0o027 umask so managed targets are group-readable but never world-readable
 # (files become 0640, dirs 0750). chezmoi ignores the group/other permission bits of
 # source files, so a global umask is the only way to keep targets like ~/.vimrc out of
@@ -44,3 +47,17 @@ umask = 0o027
 
 [data.docker]
     socketPath = {{ $dockerSocket | quote }}
+
+# `fj` reads ~/.config/forgejo-cli/client_ids to learn the OAuth2 client id for a
+# self-hosted instance; it only ships ids for public forges. The id identifies a
+# public PKCE client and is not a secret, but the host is per-machine. The token
+# `fj auth login` obtains is stored outside chezmoi, in
+# ~/Library/Application Support/forgejo-cli/keys.json.
+[data.forgejo]
+    host = {{ $forgejoHost | quote }}
+    oauthClientId = {{ $forgejoClientId | quote }}
+
+# woodpecker-cli keeps its token in the macOS keyring, so only the server URL
+# needs to reach the shell.
+[data.woodpecker]
+    server = {{ $woodpeckerServer | quote }}

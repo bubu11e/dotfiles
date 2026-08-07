@@ -1,0 +1,20 @@
+{{- /* dig, not .forgejo.host: a machine whose ~/.config/chezmoi/chezmoi.toml
+       predates these prompts has no [data.forgejo] at all, and a direct lookup
+       fails the whole apply rather than just skipping this file. */ -}}
+{{- $host := dig "forgejo" "host" "" . -}}
+{{- $clientId := dig "forgejo" "oauthClientId" "" . -}}
+{{- if and $host $clientId -}}
+# Managed by chezmoi. Edit the source: `chezmoi edit ~/.config/forgejo-cli/client_ids`.
+#
+# Maps a Forgejo host to the OAuth2 client id `fj auth login` should use. fj ships
+# built-in ids for public forges only, and checks this file ahead of them on macOS;
+# without an entry it refuses to log in and points at `fj auth add-key` instead.
+#
+# Register the application at https://<host>/user/settings/applications with
+# redirect URI http://127.0.0.1:26218/ (exact match, trailing slash included) and
+# "Confidential Client" unchecked: fj authenticates as a public PKCE client and
+# never sends a client secret.
+#
+# One `host client_id` pair per line. The id is not a secret.
+{{ $host }}  {{ $clientId }}
+{{ end -}}

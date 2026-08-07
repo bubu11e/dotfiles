@@ -2,8 +2,8 @@
 
 Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) — `skills/engineering/improve-codebase-architecture`.
 
-- Pinned commit: `ed37663cc5fbef691ddfecd080dff42f7e7e350d`
-- Retrieved: 2026-07-28
+- Pinned commit: `84fdeffd12f2ee307994d1eb6feb48173b6e0502`
+- Retrieved: 2026-08-07
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 
 ## License

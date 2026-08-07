@@ -43,7 +43,9 @@ FROM alpine:3.24
 RUN apk add --no-cache ca-certificates tzdata && \
     adduser -D -u 1000 app
 
-USER app
+# Numeric, so a host bind-mounting a volume can resolve the owner without this
+# image's /etc/passwd (hadolint DL3066). Matches the uid adduser created.
+USER 1000:1000
 WORKDIR /app
 
 COPY --from=builder /bin/__NAME__ /bin/__NAME__
@@ -57,6 +59,6 @@ EXPOSE __PORT__
 # Liveness only; uses the build-time default port. If you run with a different
 # __ENV_PREFIX___PORT, override the healthcheck accordingly.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -qO- "http://localhost:__PORT__/live" >/dev/null 2>&1 || exit 1
+    CMD ["/bin/sh", "-c", "wget -qO- http://localhost:__PORT__/live >/dev/null 2>&1 || exit 1"]
 
 ENTRYPOINT ["/bin/__NAME__"]

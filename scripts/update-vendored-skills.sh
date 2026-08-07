@@ -24,7 +24,7 @@ MATTPOCOCK_SKILLS_REF="84fdeffd12f2ee307994d1eb6feb48173b6e0502"
 CLOUDFLARE_SECURITY_AUDIT_REF="8bac42001ddd90a4dcd8d5a5045199283a8eba75"
 
 # renovate: datasource=git-refs depName=JuliusBrussee/caveman packageName=https://github.com/JuliusBrussee/caveman branch=main
-CAVEMAN_REF="0d95a81d35a9f2d123a5e9430d1cfc43d55f1bb0"
+CAVEMAN_REF="ec83e5bace4c20484d704dea21e12fc4eb94e9aa"
 
 # Managed files live under home/ (see .chezmoiroot), so the skills tree is
 # home/dot_claude/skills, not dot_claude/skills at the repo root.

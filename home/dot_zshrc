@@ -96,6 +96,24 @@ zstyle ':completion:*:-command-:*' group-order aliases builtins functions comman
 #   4. substring match from either end (oo -> foobar)
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
+# --- terraform ---
+# HashiCorp ships no completion function for any shell: the binary is its own
+# completer and `complete -C` hands it the current line, so there is nothing for
+# $fpath to serve and no startup fork either. bashcompinit teaches zsh that protocol
+# and has to come after compinit.
+#
+# Point it at a real terraform, never at the tfenv shim on $PATH — the shim is a bash
+# script that dies with "@: unbound variable" when invoked the way a completer is,
+# which yields stderr on every TAB and no candidates. The glob sorts numerically, so
+# the newest installed version wins; completion output does not vary across patches.
+_tf_completer=("${XDG_CONFIG_HOME:-$HOME/.config}"/tfenv/versions/*/terraform(Nn))
+(( $#_tf_completer )) || _tf_completer=("${commands[terraform]:-}")
+if [[ -x "${_tf_completer[-1]:-}" ]]; then
+  autoload -Uz bashcompinit && bashcompinit
+  complete -o nospace -C "${_tf_completer[-1]}" terraform
+fi
+unset _tf_completer
+
 # --- plugins ---
 # Load order matters: autosuggestions, then syntax-highlighting (wraps ZLE widgets,
 # must come after compinit and other plugins), then history-substring-search

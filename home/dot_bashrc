@@ -87,6 +87,21 @@ do
 done
 unset _bc
 
+# --- terraform ---
+# The binary is its own completer and bash speaks `complete -C` natively, so this
+# needs none of the bashcompinit dance the zsh side does. It does need the same care
+# about the target: the tfenv shim is a bash script that fails when invoked as a
+# completer, so prefer a real binary from the tfenv version store and fall back to
+# $PATH only where tfenv is absent. The loop keeps the last glob match rather than
+# forking sort(1) on every shell start.
+_tf_completer=""
+for _tf in "${XDG_CONFIG_HOME:-$HOME/.config}"/tfenv/versions/*/terraform; do
+    [ -x "$_tf" ] && _tf_completer="$_tf"
+done
+[ -n "$_tf_completer" ] || _tf_completer=$(command -v terraform 2>/dev/null)
+[ -x "$_tf_completer" ] && complete -o nospace -C "$_tf_completer" terraform
+unset _tf _tf_completer
+
 # --- prompt ---
 # Same starship config as zsh (~/.config/starship.toml), so both shells render an
 # identical prompt. Guarded so a machine without it does not error on every start.

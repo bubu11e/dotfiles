@@ -62,20 +62,39 @@ cache_key() {
   echo "${1//\//_}"
 }
 
+# Fetch $1 to $2, materialising the file only on success. curl -f still creates
+# (and leaves behind) a truncated or empty output file when the request fails,
+# which the `-f` cache tests below would then take for a valid hit.
+#
+# Every caller propagates failure with an explicit `|| return 1` rather than
+# leaning on `set -e`: these run inside nested command substitutions, where errexit
+# does not reliably abort at the failing command, and an unnoticed fetch failure is
+# exactly the bug this script is being hardened against.
+fetch_to_cache() {
+  if ! curl -fsSL "$1" -o "$2.part"; then
+    rm -f "$2.part"
+    echo "fetch failed: $1" >&2
+    return 1
+  fi
+  mv "$2.part" "$2"
+}
+
 tree_json() {
   # $1 = repo slug, $2 = ref -> echoes the path to the cached tree JSON.
-  local cache="${CACHE_DIR}/$(cache_key "$1").tree.json"
+  local cache
+  cache="${CACHE_DIR}/$(cache_key "$1").tree.json"
   if [[ ! -f "$cache" ]]; then
-    curl -fsSL "https://api.github.com/repos/$1/git/trees/$2?recursive=1" -o "$cache"
+    fetch_to_cache "https://api.github.com/repos/$1/git/trees/$2?recursive=1" "$cache" || return 1
   fi
   echo "$cache"
 }
 
 license_text() {
   # $1 = repo slug, $2 = ref -> echoes the path to the cached LICENSE.
-  local cache="${CACHE_DIR}/$(cache_key "$1").LICENSE"
+  local cache
+  cache="${CACHE_DIR}/$(cache_key "$1").LICENSE"
   if [[ ! -f "$cache" ]]; then
-    curl -fsSL "https://raw.githubusercontent.com/$1/$2/LICENSE" -o "$cache"
+    fetch_to_cache "https://raw.githubusercontent.com/$1/$2/LICENSE" "$cache" || return 1
   fi
   echo "$cache"
 }
@@ -108,27 +127,43 @@ EOF
 list_skill_files() {
   # $1 = repo, $2 = subpath, $3 = skill, $4 = ref
   # -> echoes each file path relative to the skill's own dir.
+  local tree
+  tree="$(tree_json "$1" "$4")" || return 1
   jq -r --arg p "$2/$3/" \
     '.tree[] | select(.type == "blob") | select(.path | startswith($p)) | .path[($p | length):]' \
-    "$(tree_json "$1" "$4")"
+    "$tree"
 }
 
 vendor_skill() {
   # $1 = repo, $2 = subpath, $3 = skill
-  local repo="$1" subpath="$2" skill="$3" ref dest f
+  local repo="$1" subpath="$2" skill="$3" ref dest listing f
   ref="$(ref_for_repo "$repo")"
   dest="${SKILLS_DIR}/${skill}"
+
+  # Resolve the file list *before* the wipe below, and via a command substitution
+  # rather than `done < <(...)`: a process substitution's exit status is invisible
+  # to `set -e`, so a failed tree fetch used to yield zero lines, skip the loop
+  # entirely, and leave the script reporting success over a directory it had
+  # already emptied. Renovate runs this unattended and commits the result, so that
+  # failure mode is an auto-merged PR that deletes a skill. An assignment to a
+  # pre-declared variable does propagate the failure (declaring and assigning on
+  # one line would not: `local` would supply its own exit status).
+  listing="$(list_skill_files "$repo" "$subpath" "$skill" "$ref")"
+  if [[ -z "$listing" ]]; then
+    echo "no files under ${repo}/${subpath}/${skill} at ${ref}" >&2
+    return 1
+  fi
+
   # Wipe and refetch so a file removed upstream does not linger. UPSTREAM.md is
   # regenerated below, so nothing hand-written is lost in the wipe.
   rm -rf "$dest"
   mkdir -p "$dest"
   while IFS= read -r f; do
-    [[ -z "$f" ]] && continue
     echo "fetching ${repo}/${subpath}/${skill}/${f}"
     mkdir -p "${dest}/$(dirname "$f")"
     curl -fsSL "https://raw.githubusercontent.com/${repo}/${ref}/${subpath}/${skill}/${f}" \
       -o "${dest}/${f}"
-  done < <(list_skill_files "$repo" "$subpath" "$skill" "$ref")
+  done <<<"$listing"
   write_upstream_md "$repo" "$subpath" "$skill" "$ref" "$dest"
 }
 

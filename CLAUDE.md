@@ -34,7 +34,13 @@ prek run --all-files
 
 Runs the `.pre-commit-config.yaml` stack: end-of-file-fixer, trailing-whitespace,
 check-added-large-files, check-merge-conflict, yamllint (`--strict -c .yamllint`),
-and gitleaks. `prek` is the project's pre-commit runner.
+gitleaks, and shellcheck. `prek` is the project's pre-commit runner.
+
+shellcheck runs twice, once per dialect, matching files by path rather than by
+`types: [shell]` — the deployed files have chezmoi's `dot_` prefix, no extension
+and no shebang, so `identify` cannot classify them. The zsh files are deliberately
+excluded (shellcheck cannot parse zsh), as is `home/dot_shell.env.tmpl`, where
+shellcheck would see Go template syntax rather than shell.
 
 ## Validate (template render)
 
@@ -44,10 +50,18 @@ prompt values and applies as a dry run, catching template/syntax errors:
 ```bash
 chezmoi init --promptDefaults
 chezmoi apply --dry-run --verbose
+bash scripts/check-rendered-shell.sh
 ```
 
 The machine profile (the per-machine prompted values) is defined only in
 `home/.chezmoi.toml.tmpl`; `--promptDefaults` lets CI render without restating it.
+
+The dry run proves the templates *render*; it says nothing about whether what they
+render is valid shell. `scripts/check-rendered-shell.sh` closes that gap: it renders
+`~/.shell.env`, `~/.shell.aliases` and `~/.shell.rc` and parses each with `sh`,
+`bash` and `zsh`. `~/.shell.env` is the reason it exists — it is sourced by every
+shell invocation including login, and it is the one shell file shellcheck cannot
+read in place.
 
 ## Daily use
 
@@ -57,7 +71,9 @@ See the **Daily use** section of `README.md` for the day-to-day
 ## Conventions and decisions
 
 - Domain vocabulary: `CONTEXT.md`.
-- Architecture decisions: `docs/adr/`.
+- Architecture decisions: `docs/adr/` — start at its `README.md` index. The
+  conventions listed below are the summary; the ADR is the reasoning and the
+  measurements behind it.
 - `TODO.md` is deliberately gitignored and machine-local. This is a decided
   exception to the global "update and commit the TODO alongside the code" rule —
   edit it freely, never `git add` it, and do not propose tracking it again.
@@ -70,8 +86,9 @@ See the **Daily use** section of `README.md` for the day-to-day
   both shells), then `home/dot_zshenv` + `home/dot_zshrc` and
   `home/dot_bash_profile` + `home/dot_bashrc` for what only one shell can express.
   Putting an export in an rc is the bug this split exists to prevent.
-- The three shared files are **POSIX sh** — no bashisms, no zsh syntax. Verify with
-  `sh -n`, and with `zsh -n` too, since zsh must parse them as well. The one place
+- The three shared files are **POSIX sh** — no bashisms, no zsh syntax. Verified by
+  `scripts/check-rendered-shell.sh`, which parses each with all three shells; run it
+  rather than checking by hand. The one place
   the shells genuinely differ is word splitting: zsh does not split unquoted
   parameters, so `_dotfiles_path_prepend` turns on `SH_WORD_SPLIT` under
   `LOCAL_OPTIONS` for its loop.

@@ -9,7 +9,9 @@ steps:
   - name: chezmoi-check
     image: alpine:3.24
     commands:
-      - apk add --no-cache curl git
+      # bash and zsh are here for the shell-syntax check below, which has to parse
+      # the shared files with every shell that sources them.
+      - apk add --no-cache curl git bash zsh
       - sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
       # Render every template to catch template/syntax errors before they reach a
       # real machine. --promptDefaults uses each prompt's default value, so the
@@ -17,6 +19,10 @@ steps:
       # never requires touching this step. --dry-run writes nothing.
       - chezmoi init --source="$CI_WORKSPACE" --promptDefaults
       - chezmoi apply --dry-run --verbose --source="$CI_WORKSPACE"
+      # The dry-run above proves the templates render, not that what they render is
+      # valid shell — and ~/.shell.env is the one shell file shellcheck cannot read
+      # in place, because it sees Go template syntax rather than shell.
+      - bash "$CI_WORKSPACE/scripts/check-rendered-shell.sh"
 
 when:
   event: [push, manual]

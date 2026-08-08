@@ -16,3 +16,26 @@ repos:
     rev: v8.30.1
     hooks:
       - id: gitleaks
+  # shellcheck-py ships the binary from PyPI. The upstream koalaman hook runs it in
+  # Docker, which the CI pre-commit image cannot do.
+  #
+  # Files are matched by path, not by `types: [shell]`: the deployed files carry
+  # chezmoi's dot_ prefix, no extension and no shebang, so identify cannot classify
+  # them. The dialect therefore has to be stated per group.
+  #
+  # dot_zshrc and dot_zshenv are absent by design — shellcheck cannot parse zsh, and
+  # `zsh -n` is what covers them. dot_shell.env.tmpl is absent because Go template
+  # syntax is not shell; the CI render step in .woodpecker.yml checks it instead.
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        name: shellcheck (sh)
+        alias: shellcheck-sh
+        args: [--shell=sh]
+        files: ^(home/dot_shell\.(rc|aliases)|install\.sh)$
+      - id: shellcheck
+        name: shellcheck (bash)
+        alias: shellcheck-bash
+        args: [--shell=bash]
+        files: ^(home/dot_bashrc|home/dot_bash_profile|scripts/.*\.sh)$

@@ -1,7 +1,7 @@
 ---
 steps:
   - name: pre-commit
-    image: docker-registry.home.mpli.fr/pre-commit:latest
+    image: ${DOCKER_REGISTRY}/pre-commit:latest
     pull: true
     commands:
       - pre-commit run --all-files

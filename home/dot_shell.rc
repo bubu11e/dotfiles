@@ -36,5 +36,31 @@ if command -v gpg >/dev/null 2>&1; then
     export GPG_TTY
 fi
 
+# --- prompt help ---
+# Legend for the git_status block in ~/.config/starship.toml. These are starship's
+# defaults; if that file overrides a symbol, this drifts and must be updated too.
+git_status_legend() {
+    cat <<'EOF'
+starship git_status symbols
+
+  =  conflicted    merge conflict in the worktree
+  $  stashed       at least one stash entry exists
+  ✘  deleted       file deleted
+  »  renamed       file renamed
+  !  modified      file modified in worktree
+     typechanged   file type changed, e.g. file to symlink (empty by default)
+  +  staged        change staged in the index
+  ?  untracked     untracked file present
+
+  ⇡  ahead         local commits not on the remote
+  ⇣  behind        remote commits not local
+  ⇕  diverged      both
+     up_to_date    in sync (empty by default)
+
+$all_status renders the first group, always in that order.
+$ahead_behind renders exactly one of the second.
+EOF
+}
+
 # --- local overrides ---
 [ -f "$HOME/.shell.rc.local" ] && . "$HOME/.shell.rc.local"

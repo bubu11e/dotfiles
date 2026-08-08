@@ -20,9 +20,7 @@ $git_status\
 [](fg:yellow bg:green)\
 $golang\
 ${env_var.VIRTUAL_ENV_PROMPT}\
-[](fg:green bg:lavender)\
-$time\
-[ ](fg:lavender)\
+[ ](fg:green)\
 $cmd_duration\
 $line_break\
 $character"""
@@ -107,12 +105,6 @@ format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
 # the part that mattered here — which environment is active.
 style = "bg:green"
 format = '[[ $env_value](fg:crust bg:green)]($style)'
-
-[time]
-disabled = false
-time_format = "%R"
-style = "bg:lavender"
-format = '[[  $time ](fg:crust bg:lavender)]($style)'
 
 [line_break]
 disabled = true

@@ -7,22 +7,35 @@
 # directory timed out" once they exceed scan_timeout on a large or networked dir.
 # Anything configured below must also appear in this format string, or it is dead
 # config that never renders.
+#
+# The powerline separators below live in this string, so they render whether or not
+# the module that follows them does. The chain therefore covers only what is always
+# present — os, directory, git — and ends at the yellow cap. Everything after it is
+# conditional and carries its own caps, so a silent module leaves no trace; an
+# always-rendered arrow into an empty block is what this layout exists to avoid.
+# $container and $git_state are the exception: they share the background of the block
+# they sit in, so they need no separator of their own.
 format = """
 [](red)\
 $os\
+$container\
 $username\
 $hostname\
 [](bg:peach fg:red)\
 $directory\
 [](bg:yellow fg:peach)\
 $git_branch\
+$git_state\
 $git_status\
-[](fg:yellow bg:green)\
+[](fg:yellow)\
 $golang\
 ${env_var.VIRTUAL_ENV_PROMPT}\
-[ ](fg:green)\
+$jobs\
+$terraform\
+$kubernetes\
+$docker_context\
 $cmd_duration\
-$line_break\
+$status\
 $character"""
 
 palette = 'catppuccin_mocha'
@@ -52,6 +65,13 @@ CentOS = ""
 Debian = "󰣚"
 Redhat = "󱄛"
 RedHatEnterprise = "󱄛"
+
+[container]
+# Renders only inside a container (/run/.containerenv, /.dockerenv), so it costs
+# nothing on the host. Shares the red background rather than opening a block of its
+# own — see the note on the format string.
+style = "bg:red fg:crust"
+format = '[ ⬢ $name]($style)'
 
 [username]
 show_always = true
@@ -89,6 +109,12 @@ style = "bg:yellow"
 format = '[[ $symbol $branch(:$remote_name/$remote_branch) ](fg:crust bg:yellow)]($style)'
 always_show_remote = true
 
+[git_state]
+# Silent outside a git operation. The point is the case where `git status` would have
+# told you a rebase is half-finished and the branch name alone does not.
+style = "bg:yellow"
+format = '[[($state( $progress_current/$progress_total) )](fg:crust bg:yellow)]($style)'
+
 [git_status]
 style = "bg:yellow"
 format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
@@ -96,7 +122,7 @@ format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
 [golang]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[ $symbol( $version) ](fg:crust bg:green)[](fg:green)'
 
 [env_var.VIRTUAL_ENV_PROMPT]
 # Replaces the built-in $python module. That module scans the working directory on
@@ -104,27 +130,63 @@ format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
 # VIRTUAL_ENV_PROMPT (e.g. "(myenv) "), so reading it costs nothing and still shows
 # the part that mattered here — which environment is active.
 style = "bg:green"
-format = '[[ $env_value](fg:crust bg:green)]($style)'
+format = '[](fg:green)[ $env_value](fg:crust bg:green)[](fg:green)'
 
-[line_break]
-disabled = true
+[jobs]
+# Shell state, not a directory scan, so it is free.
+symbol = "✦"
+number_threshold = 1
+format = '[](fg:green)[ $symbol$number ](fg:crust bg:green)[](fg:green)'
+style = "bg:green"
+
+[terraform]
+# $version forks the terraform binary on every prompt in a .tf directory; $workspace
+# alone would just read .terraform/environment. The version is here deliberately —
+# measure before removing it.
+symbol = "山"
+style = "bg:mauve"
+format = '[](fg:mauve)[ $symbol $workspace( $version) ](fg:crust bg:mauve)[](fg:mauve)'
+
+[kubernetes]
+# Scoped to directories that actually hold manifests, so the kubeconfig is not parsed
+# on every prompt everywhere. Wrong-cluster is the failure this exists to catch.
+disabled = false
+symbol = "⎈ "
+style = "bg:sky"
+detect_files = ['Chart.yaml', 'kustomization.yaml', 'skaffold.yaml']
+detect_folders = ['k8s', 'manifests', 'kubernetes']
+format = '[](fg:sky)[ $symbol$context( :$namespace) ](fg:crust bg:sky)[](fg:sky)'
+
+[docker_context]
+# only_with_files = false because DOCKER_HOST is exported globally from ~/.shell.env:
+# the dangerous case is running docker from a directory with no Dockerfile in it and
+# forgetting the daemon is on another machine. Silent when the context is default.
+only_with_files = false
+symbol = " "
+style = "bg:blue"
+format = '[](fg:blue)[ $symbol$context ](fg:crust bg:blue)[](fg:blue)'
+
+[cmd_duration]
+show_milliseconds = false
+format = '[](fg:lavender)[ in $duration ](fg:crust bg:lavender)[](fg:lavender)'
+style = "bg:lavender"
+disabled = false
+show_notifications = true
+min_time_to_notify = 45000
+
+[status]
+# The red character already says a command failed; this says which kind. 127, 130 and
+# 1 are three different mistakes and they used to look identical.
+disabled = false
+recognize_signal_code = true
+symbol = ""
+style = "bg:red"
+format = '[](fg:red)[ $common_meaning$signal_name$maybe_int ](fg:crust bg:red)[](fg:red)'
 
 [character]
 disabled = false
 success_symbol = '[❯](bold fg:green)'
 error_symbol = '[❯](bold fg:red)'
-vimcmd_symbol = '[❮](bold fg:green)'
-vimcmd_replace_one_symbol = '[❮](bold fg:lavender)'
-vimcmd_replace_symbol = '[❮](bold fg:lavender)'
-vimcmd_visual_symbol = '[❮](bold fg:yellow)'
-
-[cmd_duration]
-show_milliseconds = true
-format = " in $duration "
-style = "bg:lavender"
-disabled = false
-show_notifications = true
-min_time_to_notify = 45000
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"

@@ -86,7 +86,9 @@ truncation_symbol = "…/"
 [git_branch]
 symbol = ""
 style = "bg:yellow"
-format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
+# $remote_name is worth the width because a branch can track a remote that is not
+# origin, and this machine pushes some repos to a mirror as well as their origin.
+format = '[[ $symbol $branch(:$remote_name/$remote_branch) ](fg:crust bg:yellow)]($style)'
 always_show_remote = true
 
 [git_status]

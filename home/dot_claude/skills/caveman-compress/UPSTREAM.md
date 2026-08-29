@@ -2,8 +2,8 @@
 
 Vendored from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) — `skills/caveman-compress`.
 
-- Pinned commit: `11ddc0c9813c8f75365cd5be2f753df08712f154`
-- Retrieved: 2026-08-08
+- Pinned commit: `17f9f2ec2377b0bfe16b52ee03a462e7f0a02bc8`
+- Retrieved: 2026-08-28
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 
 ## License
@@ -11,6 +11,12 @@ Vendored from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) 
 Verbatim copy of `LICENSE` from the upstream repository at the pinned commit:
 
 ```
+Scope note: this MIT license covers this repository except Engine-linked
+directories listed in LICENSING.md (engine/, proxy/, cacheengine/, rewriter/,
+browse/, mcp/, shrink/, cavemem Go core, shared/platform/), which are licensed
+under Business Source License 1.1 — see LICENSE.BSL. New Engine-linked runtime
+modules default to BSL-1.1 unless explicitly classified as MIT.
+
 MIT License
 
 Copyright (c) 2026 Julius Brussee

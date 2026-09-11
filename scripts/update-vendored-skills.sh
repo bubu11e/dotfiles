@@ -21,7 +21,7 @@ set -euo pipefail
 MATTPOCOCK_SKILLS_REF="6654f6b60cd9d5be8b54c6fafe44346dabeb3b76"
 
 # renovate: datasource=git-refs depName=cloudflare/security-audit-skill packageName=https://github.com/cloudflare/security-audit-skill branch=main
-CLOUDFLARE_SECURITY_AUDIT_REF="8bac42001ddd90a4dcd8d5a5045199283a8eba75"
+CLOUDFLARE_SECURITY_AUDIT_REF="d24bc269171a9171fac58493e0ffba511d571a4a"
 
 # renovate: datasource=git-refs depName=JuliusBrussee/caveman packageName=https://github.com/JuliusBrussee/caveman branch=main
 CAVEMAN_REF="15581d14007fd01fb3f132016741962f34936ca2"

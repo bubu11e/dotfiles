@@ -10,15 +10,14 @@ import (
 	"__MODULE__/internal/store"
 )
 
-// sessionCookie is the name of the opaque session cookie.
-const sessionCookie = "__NAME___session"
-
 // contextUserKey is where RequireAuth stashes the resolved user.
 const contextUserKey = "auth.user"
 
 // RequireAuth returns middleware that resolves the session cookie to a user and
 // stores it in the context. It aborts with 401 if there is no valid session.
-func RequireAuth(sessions *store.SessionStore, users *store.UserStore) gin.HandlerFunc {
+// Sessions slide: one past its half-life is extended and its cookie re-issued, so
+// a user who keeps using the app is never signed out by the fixed expiry.
+func RequireAuth(sessions *store.SessionStore, users *store.UserStore, cookies SessionCookies) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		raw, err := c.Cookie(sessionCookie)
 		if err != nil || raw == "" {
@@ -39,6 +38,13 @@ func RequireAuth(sessions *store.SessionStore, users *store.UserStore) gin.Handl
 			// The session points at a missing user: treat it as unauthenticated.
 			unauthorized(c)
 			return
+		}
+		if cookies.dueForRenewal(sess) {
+			// Best-effort: a failed extension only means the session keeps its
+			// current expiry, so the request proceeds either way.
+			if err := sessions.Touch(c.Request.Context(), sess.ID, cookies.ttl); err == nil {
+				cookies.set(c, raw)
+			}
 		}
 		c.Set(contextUserKey, user)
 		c.Next()

@@ -51,8 +51,9 @@ A module laid out like the existing services:
 With the sign-in page (asked, see below), it also produces `internal/auth/`
 (argon2id + opaque tokens), `internal/store/` (users, sessions),
 `internal/storage/` + `migrations/` (SQLite via `modernc.org/sqlite`, self-migrating),
-`internal/web/auth.go` + `middleware.go` + `instance.go`, and a Vue `AuthView`
-with a router guard.
+`internal/web/auth.go` + `middleware.go` + `session.go` + `instance.go` (sessions
+slide on use; a 401 sends the SPA back to sign-in), and a Vue `AuthView` with a
+router guard.
 
 ## Ask the user
 

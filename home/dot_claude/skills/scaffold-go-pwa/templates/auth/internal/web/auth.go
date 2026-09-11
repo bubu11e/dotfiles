@@ -22,12 +22,11 @@ const minPasswordLen = 8
 // current-user endpoint for local email + password accounts. In development mode
 // the password is optional and accounts are auto-verified (ADR-0004).
 type AuthHandler struct {
-	users        *store.UserStore
-	sessions     *store.SessionStore
-	sessionTTL   time.Duration
-	secureCookie bool
-	devMode      bool
-	logger       *slog.Logger
+	users    *store.UserStore
+	sessions *store.SessionStore
+	cookies  SessionCookies
+	devMode  bool
+	logger   *slog.Logger
 }
 
 // NewAuthHandler constructs an AuthHandler. secureCookie should be true when the
@@ -39,8 +38,8 @@ func NewAuthHandler(users *store.UserStore, sessions *store.SessionStore, ttl ti
 		logger = slog.Default()
 	}
 	return &AuthHandler{
-		users: users, sessions: sessions, sessionTTL: ttl,
-		secureCookie: secureCookie, devMode: devMode, logger: logger,
+		users: users, sessions: sessions, cookies: NewSessionCookies(ttl, secureCookie),
+		devMode: devMode, logger: logger,
 	}
 }
 
@@ -52,7 +51,7 @@ func (h *AuthHandler) Register(r gin.IRouter) {
 	r.GET("/api/v1/auth/verify", h.verify)
 
 	authed := r.Group("/api/v1")
-	authed.Use(RequireAuth(h.sessions, h.users))
+	authed.Use(RequireAuth(h.sessions, h.users, h.cookies))
 	authed.GET("/me", h.me)
 }
 
@@ -261,7 +260,7 @@ func (h *AuthHandler) logout(c *gin.Context) {
 	if raw, err := c.Cookie(sessionCookie); err == nil && raw != "" {
 		_ = h.sessions.Delete(c.Request.Context(), auth.HashToken(raw))
 	}
-	h.clearCookie(c)
+	h.cookies.clear(c)
 	c.Status(http.StatusNoContent)
 }
 
@@ -280,26 +279,11 @@ func (h *AuthHandler) issueSession(c *gin.Context, userID int64) error {
 	if err != nil {
 		return err
 	}
-	if _, err := h.sessions.Create(c.Request.Context(), hash, userID, h.sessionTTL); err != nil {
+	if _, err := h.sessions.Create(c.Request.Context(), hash, userID, h.cookies.TTL()); err != nil {
 		return err
 	}
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     sessionCookie,
-		Value:    raw,
-		Path:     "/",
-		MaxAge:   int(h.sessionTTL.Seconds()),
-		HttpOnly: true,
-		Secure:   h.secureCookie,
-		SameSite: http.SameSiteLaxMode,
-	})
+	h.cookies.set(c, raw)
 	return nil
-}
-
-func (h *AuthHandler) clearCookie(c *gin.Context) {
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name: sessionCookie, Value: "", Path: "/", MaxAge: -1,
-		HttpOnly: true, Secure: h.secureCookie, SameSite: http.SameSiteLaxMode,
-	})
 }
 
 // hashOptionalPassword returns an argon2id hash, or an empty string for an empty

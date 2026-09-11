@@ -58,6 +58,27 @@ func (s *SessionStore) GetValid(ctx context.Context, tokenHash string) (*Session
 	return &sess, nil
 }
 
+// Touch extends a session to now+ttl, refreshing a sliding window so an active
+// user is not signed out mid-use. An already-expired session is not resurrected:
+// it returns ErrNotFound.
+func (s *SessionStore) Touch(ctx context.Context, tokenHash string, ttl time.Duration) error {
+	now := time.Now().UTC()
+	res, err := s.db.ExecContext(ctx,
+		"UPDATE sessions SET expires_at = ? WHERE id = ? AND expires_at > ?",
+		now.Add(ttl).Format(time.RFC3339), tokenHash, now.Format(time.RFC3339))
+	if err != nil {
+		return fmt.Errorf("touch session: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("touch session rows: %w", err)
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 // Delete removes a session, signing that client out.
 func (s *SessionStore) Delete(ctx context.Context, tokenHash string) error {
 	if _, err := s.db.ExecContext(ctx, "DELETE FROM sessions WHERE id = ?", tokenHash); err != nil {

@@ -187,3 +187,43 @@ func TestDeletingAUserCascadesToItsSessions(t *testing.T) {
 		t.Errorf("session survived its user: %v", err)
 	}
 }
+
+func TestSessionTouchExtendsExpiry(t *testing.T) {
+	db := openDB(t)
+	users := store.NewUserStore(db)
+	sessions := store.NewSessionStore(db)
+	ctx := context.Background()
+
+	user, err := users.Create(ctx, "a@b.c", "h", "A")
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if _, err := sessions.Create(ctx, "touch", user.ID, time.Minute); err != nil {
+		t.Fatalf("Create session: %v", err)
+	}
+	if err := sessions.Touch(ctx, "touch", time.Hour); err != nil {
+		t.Fatalf("Touch: %v", err)
+	}
+	sess, err := sessions.GetValid(ctx, "touch")
+	if err != nil {
+		t.Fatalf("GetValid: %v", err)
+	}
+	if remaining := time.Until(sess.ExpiresAt); remaining < 30*time.Minute {
+		t.Errorf("remaining after Touch = %v, want ~1h", remaining)
+	}
+}
+
+func TestSessionTouchExpiredIsNotFound(t *testing.T) {
+	db := openDB(t)
+	users := store.NewUserStore(db)
+	sessions := store.NewSessionStore(db)
+	ctx := context.Background()
+
+	user, _ := users.Create(ctx, "a@b.c", "h", "A")
+	if _, err := sessions.Create(ctx, "dead", user.ID, -time.Minute); err != nil {
+		t.Fatalf("Create session: %v", err)
+	}
+	if err := sessions.Touch(ctx, "dead", time.Hour); !errors.Is(err, store.ErrNotFound) {
+		t.Errorf("Touch expired = %v, want ErrNotFound", err)
+	}
+}

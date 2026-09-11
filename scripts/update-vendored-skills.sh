@@ -26,6 +26,9 @@ CLOUDFLARE_SECURITY_AUDIT_REF="d24bc269171a9171fac58493e0ffba511d571a4a"
 # renovate: datasource=git-refs depName=JuliusBrussee/caveman packageName=https://github.com/JuliusBrussee/caveman branch=main
 CAVEMAN_REF="15581d14007fd01fb3f132016741962f34936ca2"
 
+# renovate: datasource=git-refs depName=AminBlg/SimpleEnglish packageName=https://github.com/AminBlg/SimpleEnglish branch=main
+SIMPLE_ENGLISH_REF="61ee200efbd423050aab982eed94226229891ae0"
+
 # Managed files live under home/ (see .chezmoiroot), so the skills tree is
 # home/dot_claude/skills, not dot_claude/skills at the repo root.
 SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/home/dot_claude/skills"
@@ -40,6 +43,7 @@ SKILLS=(
   "mattpocock/skills|skills/productivity|grill-me"
   "cloudflare/security-audit-skill|skills|security-audit"
   "JuliusBrussee/caveman|skills|caveman-compress"
+  "AminBlg/SimpleEnglish|skills|simple-english"
 )
 
 # Per-repo responses are cached here so a repo used by several skills is
@@ -53,6 +57,7 @@ ref_for_repo() {
     mattpocock/skills) echo "$MATTPOCOCK_SKILLS_REF" ;;
     cloudflare/security-audit-skill) echo "$CLOUDFLARE_SECURITY_AUDIT_REF" ;;
     JuliusBrussee/caveman) echo "$CAVEMAN_REF" ;;
+    AminBlg/SimpleEnglish) echo "$SIMPLE_ENGLISH_REF" ;;
     *) echo "no pinned ref for repo: $1" >&2; return 1 ;;
   esac
 }

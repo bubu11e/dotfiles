@@ -124,7 +124,8 @@ button:disabled {
 }
 
 input,
-select {
+select,
+textarea {
   font: inherit;
   width: 100%;
   padding: 0.55rem 0.7rem;
@@ -132,6 +133,14 @@ select {
   border-radius: 8px;
   background: var(--surface);
   color: var(--fg);
+}
+
+/* Prose is written, not filled in: give a textarea room and let it be dragged
+   taller, since `rows` is only a starting height. */
+textarea {
+  line-height: 1.45;
+  resize: vertical;
+  min-height: 5rem;
 }
 
 label {
@@ -171,4 +180,16 @@ label span {
 
 form button[type='submit'] {
   width: 100%;
+}
+
+/* iOS Safari zooms the page in when a focused field is smaller than 16px, and an
+   installed PWA has no address bar to zoom back out, so the zoom survives until
+   it is pinched away. Kept last so it overrides every field size above. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea,
+  [contenteditable='true'] {
+    font-size: 16px;
+  }
 }

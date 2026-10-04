@@ -2,9 +2,13 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
+    # Vendored skills are refetched verbatim by scripts/update-vendored-skills.sh,
+    # so a whitespace fix here would be undone by the next Renovate bump.
     hooks:
       - id: end-of-file-fixer
+        exclude: &vendored ^home/dot_claude/skills/(caveman-compress|codebase-design|domain-modeling|grill-me|grill-with-docs|grilling|improve-codebase-architecture|security-audit|simple-english)/
       - id: trailing-whitespace
+        exclude: *vendored
       - id: check-added-large-files
       - id: check-merge-conflict
   - repo: https://github.com/adrienverge/yamllint.git

@@ -11,7 +11,8 @@
 #
 # Adding a skill: append a "repo|subpath|skill" row to SKILLS. If it comes from
 # a repo not yet listed, also add a renovate-commented <NAME>_REF for that repo
-# and a case arm in ref_for_repo.
+# and a case arm in ref_for_repo. Add the skill to the `vendored` exclude in
+# .pre-commit-config.yaml too.
 #
 # Requires: curl, jq.
 # Run manually:  bash scripts/update-vendored-skills.sh

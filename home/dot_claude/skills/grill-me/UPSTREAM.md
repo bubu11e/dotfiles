@@ -2,7 +2,7 @@
 
 Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) — `skills/productivity/grill-me`.
 
-- Pinned commit: `3cca18b368ae95cdbdebbff572ccafa662551015`
+- Pinned commit: `24fe0ef7737efae15c87225755e9f6f5965e4888`
 - Retrieved: 2026-10-04
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 

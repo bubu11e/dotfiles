@@ -27,7 +27,7 @@ CLOUDFLARE_SECURITY_AUDIT_REF="d24bc269171a9171fac58493e0ffba511d571a4a"
 CAVEMAN_REF="15581d14007fd01fb3f132016741962f34936ca2"
 
 # renovate: datasource=git-refs depName=AminBlg/SimpleEnglish packageName=https://github.com/AminBlg/SimpleEnglish branch=main
-SIMPLE_ENGLISH_REF="61ee200efbd423050aab982eed94226229891ae0"
+SIMPLE_ENGLISH_REF="32ea2d3f4404bfbff162c1861e5ae4f1bcc628b3"
 
 # Managed files live under home/ (see .chezmoiroot), so the skills tree is
 # home/dot_claude/skills, not dot_claude/skills at the repo root.

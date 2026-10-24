@@ -19,7 +19,7 @@
 set -euo pipefail
 
 # renovate: datasource=git-refs depName=mattpocock/skills packageName=https://github.com/mattpocock/skills branch=main
-MATTPOCOCK_SKILLS_REF="24fe0ef7737efae15c87225755e9f6f5965e4888"
+MATTPOCOCK_SKILLS_REF="5beb35b040e3de97e54fa9e386d7e42d15c295c2"
 
 # renovate: datasource=git-refs depName=cloudflare/security-audit-skill packageName=https://github.com/cloudflare/security-audit-skill branch=main
 CLOUDFLARE_SECURITY_AUDIT_REF="c1c8a8c1471069fb0e188eeaff69b8e8db6564a8"

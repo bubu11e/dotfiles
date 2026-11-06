@@ -2,7 +2,7 @@
 
 Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) — `skills/engineering/domain-modeling`.
 
-- Pinned commit: `5beb35b040e3de97e54fa9e386d7e42d15c295c2`
+- Pinned commit: `4ae2317ddb22b046e26455e4f9c9b3aaaf62212d`
 - Retrieved: 2026-11-06
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 

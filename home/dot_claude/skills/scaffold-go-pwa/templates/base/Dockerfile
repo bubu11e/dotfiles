@@ -1,7 +1,7 @@
 # Build the embedded PWA first; Vite emits into internal/spa/dist, which the Go
 # build embeds (ADR-0001). Building it here keeps the image reproducible outside
 # CI, since internal/spa/dist is gitignored and absent from a checkout.
-FROM node:24-alpine AS frontend
+FROM node:26-alpine AS frontend
 
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./

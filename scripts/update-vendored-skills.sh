@@ -25,7 +25,7 @@ MATTPOCOCK_SKILLS_REF="5beb35b040e3de97e54fa9e386d7e42d15c295c2"
 CLOUDFLARE_SECURITY_AUDIT_REF="c1c8a8c1471069fb0e188eeaff69b8e8db6564a8"
 
 # renovate: datasource=git-refs depName=JuliusBrussee/caveman packageName=https://github.com/JuliusBrussee/caveman branch=main
-CAVEMAN_REF="1f951fb4ad40ba63302c6e7f987147e034d599d9"
+CAVEMAN_REF="4bf8898b31c93326a5e5d90999241a1c15b52ed2"
 
 # renovate: datasource=git-refs depName=AminBlg/SimpleEnglish packageName=https://github.com/AminBlg/SimpleEnglish branch=main
 SIMPLE_ENGLISH_REF="a6fcb4fde098b33617cc1578d151ebf58774b883"

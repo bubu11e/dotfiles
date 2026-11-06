@@ -3,7 +3,7 @@
 Vendored from [AminBlg/SimpleEnglish](https://github.com/AminBlg/SimpleEnglish) — `skills/simple-english`.
 
 - Pinned commit: `a6fcb4fde098b33617cc1578d151ebf58774b883`
-- Retrieved: 2026-10-24
+- Retrieved: 2026-11-06
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 
 ## License

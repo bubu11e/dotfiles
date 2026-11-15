@@ -3,7 +3,7 @@
 Vendored from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) — `skills/caveman-compress`.
 
 - Pinned commit: `4bf8898b31c93326a5e5d90999241a1c15b52ed2`
-- Retrieved: 2026-11-06
+- Retrieved: 2026-11-15
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 
 ## License

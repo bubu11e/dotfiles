@@ -3,7 +3,7 @@
 Vendored from [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) — `skills/security-audit`.
 
 - Pinned commit: `c1c8a8c1471069fb0e188eeaff69b8e8db6564a8`
-- Retrieved: 2026-11-06
+- Retrieved: 2026-11-15
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 
 ## License

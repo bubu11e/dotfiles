@@ -45,3 +45,11 @@ repos:
         alias: shellcheck-bash
         args: [--shell=bash]
         files: ^(home/dot_bashrc|home/dot_bash_profile|scripts/.*\.sh)$
+  - repo: local
+    hooks:
+      - id: vendored-provenance
+        name: vendored skills carry provenance and licence
+        language: system
+        entry: sh scripts/check-vendored-provenance.sh
+        pass_filenames: false
+        files: ^home/dot_claude/skills/

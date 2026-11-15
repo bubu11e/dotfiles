@@ -6,13 +6,14 @@
 # the refreshed skill content, not just a new SHA string.
 #
 # The file set for each skill is derived from the upstream tree at the pinned
-# ref, not hardcoded here: only the skill names are curated. A file added or
-# removed upstream is mirrored on the next run without editing this script.
+# ref, not hardcoded here. A row naming `*` as its skill takes every skill under
+# that subpath, so a skill added or removed upstream is mirrored too (ADR-0007).
+# A vendored directory no longer produced by any row is pruned.
 #
 # Adding a skill: append a "repo|subpath|skill" row to SKILLS. If it comes from
 # a repo not yet listed, also add a renovate-commented <NAME>_REF for that repo
-# and a case arm in ref_for_repo. Add the skill to the `vendored` exclude in
-# .pre-commit-config.yaml too.
+# and a case arm in ref_for_repo. A locally-authored skill instead goes in the
+# `vendored` exclude's lookahead in .pre-commit-config.yaml.
 #
 # Requires: curl, jq.
 # Run manually:  bash scripts/update-vendored-skills.sh
@@ -30,24 +31,26 @@ CAVEMAN_REF="4bf8898b31c93326a5e5d90999241a1c15b52ed2"
 # renovate: datasource=git-refs depName=AminBlg/SimpleEnglish packageName=https://github.com/AminBlg/SimpleEnglish branch=main
 SIMPLE_ENGLISH_REF="a6fcb4fde098b33617cc1578d151ebf58774b883"
 
+# renovate: datasource=git-refs depName=DietrichGebert/ponytail packageName=https://github.com/DietrichGebert/ponytail branch=main
+PONYTAIL_REF="96608e078b2d5ea607c5c3b8b5a54d1c1fba6846"
+
 # Managed files live under home/ (see .chezmoiroot), so the skills tree is
 # home/dot_claude/skills, not dot_claude/skills at the repo root.
 SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/home/dot_claude/skills"
 RETRIEVED="$(date -u +%Y-%m-%d)"
 
-# The curated set, as "repo|subpath|skill". The subpath is where the skill dirs
-# live upstream; it differs per repo and even per skill within a repo. Each
-# skill's own file list is read from upstream, not stated here.
+# The vendored set, as "repo|subpath|skill", where skill `*` means every skill
+# under subpath. The subpath is where the skill dirs live upstream; it differs
+# per repo and even per skill within a repo. mattpocock's in-progress/ and
+# deprecated/ are left out on purpose: upstream marks them as not ready.
 SKILLS=(
-  "mattpocock/skills|skills/engineering|grill-with-docs"
-  "mattpocock/skills|skills/engineering|improve-codebase-architecture"
-  "mattpocock/skills|skills/engineering|codebase-design"
-  "mattpocock/skills|skills/engineering|domain-modeling"
-  "mattpocock/skills|skills/productivity|grill-me"
-  "mattpocock/skills|skills/productivity|grilling"
+  "mattpocock/skills|skills/engineering|*"
+  "mattpocock/skills|skills/misc|*"
+  "mattpocock/skills|skills/productivity|*"
   "cloudflare/security-audit-skill|skills|security-audit"
   "JuliusBrussee/caveman|skills|caveman-compress"
   "AminBlg/SimpleEnglish|skills|simple-english"
+  "DietrichGebert/ponytail|skills|*"
 )
 
 # Per-repo responses are cached here so a repo used by several skills is
@@ -62,6 +65,7 @@ ref_for_repo() {
     cloudflare/security-audit-skill) echo "$CLOUDFLARE_SECURITY_AUDIT_REF" ;;
     JuliusBrussee/caveman) echo "$CAVEMAN_REF" ;;
     AminBlg/SimpleEnglish) echo "$SIMPLE_ENGLISH_REF" ;;
+    DietrichGebert/ponytail) echo "$PONYTAIL_REF" ;;
     *) echo "no pinned ref for repo: $1" >&2; return 1 ;;
   esac
 }
@@ -143,6 +147,26 @@ list_skill_files() {
     "$tree"
 }
 
+expand_skills() {
+  # $1 = repo, $2 = subpath, $3 = skill or `*` -> echoes one skill name per line.
+  local tree ref names
+  if [[ "$3" != "*" ]]; then
+    echo "$3"
+    return 0
+  fi
+  ref="$(ref_for_repo "$1")" || return 1
+  tree="$(tree_json "$1" "$ref")" || return 1
+  names="$(jq -r --arg p "$2/" \
+    '.tree[] | select(.type == "blob") | .path | select(startswith($p)) | .[($p | length):]
+     | select(test("^[^/]+/SKILL\\.md$")) | split("/")[0]' \
+    "$tree")" || return 1
+  if [[ -z "$names" ]]; then
+    echo "no skills under $1/$2 at ${ref}" >&2
+    return 1
+  fi
+  echo "$names"
+}
+
 vendor_skill() {
   # $1 = repo, $2 = subpath, $3 = skill
   local repo="$1" subpath="$2" skill="$3" ref dest listing f
@@ -176,9 +200,43 @@ vendor_skill() {
   write_upstream_md "$repo" "$subpath" "$skill" "$ref" "$dest"
 }
 
+# Resolve every row before touching the tree, so a failed fetch or a name clash
+# aborts with nothing wiped.
+resolved=()
 for entry in "${SKILLS[@]}"; do
+  IFS='|' read -r repo subpath skill <<<"$entry"
+  names="$(expand_skills "$repo" "$subpath" "$skill")" || exit 1
+  while IFS= read -r name; do
+    # The wipe in vendor_skill must never reach a locally-authored skill: a
+    # wildcard row can surface an upstream skill that shares its name.
+    if [[ -d "${SKILLS_DIR}/${name}" && ! -f "${SKILLS_DIR}/${name}/UPSTREAM.md" ]]; then
+      echo "refusing to overwrite locally-authored skill: ${name}" >&2
+      exit 1
+    fi
+    resolved+=("${repo}|${subpath}|${name}")
+  done <<<"$names"
+done
+
+dupes="$(printf '%s\n' "${resolved[@]}" | cut -d'|' -f3 | sort | uniq -d)"
+if [[ -n "$dupes" ]]; then
+  echo "skill name vendored from more than one place: ${dupes}" >&2
+  exit 1
+fi
+
+for entry in "${resolved[@]}"; do
   IFS='|' read -r repo subpath skill <<<"$entry"
   vendor_skill "$repo" "$subpath" "$skill"
 done
 
-echo "done: vendored ${#SKILLS[@]} skills"
+# A skill dropped upstream, or from SKILLS, would otherwise linger forever.
+# UPSTREAM.md is what marks a directory as vendored rather than locally authored.
+for marker in "${SKILLS_DIR}"/*/UPSTREAM.md; do
+  [[ -f "$marker" ]] || continue
+  dir="$(dirname "$marker")"
+  if ! printf '%s\n' "${resolved[@]}" | cut -d'|' -f3 | grep -qFx "$(basename "$dir")"; then
+    echo "pruning $(basename "$dir"): no longer vendored"
+    rm -rf "$dir"
+  fi
+done
+
+echo "done: vendored ${#resolved[@]} skills"

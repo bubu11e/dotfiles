@@ -6,7 +6,9 @@ repos:
     # so a whitespace fix here would be undone by the next Renovate bump.
     hooks:
       - id: end-of-file-fixer
-        exclude: &vendored ^home/dot_claude/skills/(caveman-compress|codebase-design|domain-modeling|grill-me|grill-with-docs|grilling|improve-codebase-architecture|security-audit|simple-english)/
+        # Vendored skills are named by exclusion: the set comes from upstream
+        # wildcards (ADR-0007), so only the locally-authored ones are listed.
+        exclude: &vendored ^home/dot_claude/skills/(?!(commit-and-push|orchestrate|review-pr|review-repository|scaffold-go-pwa)/)
       - id: trailing-whitespace
         exclude: *vendored
       - id: check-added-large-files

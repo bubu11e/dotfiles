@@ -18,7 +18,8 @@ page is describing several decisions.
 | [0003](0003-branch-on-ostype.md) | Branch on `$OSTYPE`, never on `uname` | Accepted |
 | [0004](0004-completions-from-fpath.md) | Take completions from `$fpath`, not from a startup fork | Accepted |
 | [0005](0005-todo-is-machine-local.md) | `TODO.md` is machine-local and gitignored | Accepted |
-| [0006](0006-vendor-skills-by-pinned-sha.md) | Vendor upstream skills at pinned SHAs, by script | Accepted |
+| [0006](0006-vendor-skills-by-pinned-sha.md) | Vendor upstream skills at pinned SHAs, by script | Partly superseded by ADR-0007 |
+| [0007](0007-vendor-whole-upstream-categories.md) | Vendor whole upstream categories, not hand-picked skills | Accepted |
 
 ## Superseding
 

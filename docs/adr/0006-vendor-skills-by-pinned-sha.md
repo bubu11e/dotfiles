@@ -1,6 +1,6 @@
 # ADR-0006: Vendor upstream skills at pinned SHAs, by script
 
-Status: Accepted
+Status: Partly superseded by ADR-0007 (curation by name)
 
 ## Context
 

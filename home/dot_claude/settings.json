@@ -5,6 +5,7 @@
   "effortLevel": "high",
   "theme": "dark-ansi",
   "model": "opus",
+  "attribution": false,
   "hooks": {
     "SessionStart": [
       {

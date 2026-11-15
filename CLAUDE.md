@@ -70,7 +70,11 @@ See the **Daily use** section of `README.md` for the day-to-day
 
 ## Conventions and decisions
 
-- Domain vocabulary: `CONTEXT.md`.
+- Domain vocabulary: `CONTEXT.md`. The vendored `domain-modeling` skill calls this
+  file `GLOSSARY.md`; here it stays `CONTEXT.md`, so edit that one instead.
+- Vendored skills: `scripts/update-vendored-skills.sh` (ADR-0006, ADR-0007). A
+  change to it is verified by `bash scripts/test-update-vendored-skills.sh`,
+  which runs offline.
 - Architecture decisions: `docs/adr/` — start at its `README.md` index. The
   conventions listed below are the summary; the ADR is the reasoning and the
   measurements behind it.

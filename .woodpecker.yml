@@ -10,8 +10,9 @@ steps:
     image: alpine:3.24
     commands:
       # bash and zsh are here for the shell-syntax check below, which has to parse
-      # the shared files with every shell that sources them.
-      - apk add --no-cache curl git bash zsh
+      # the shared files with every shell that sources them; jq is for the
+      # vendoring test.
+      - apk add --no-cache curl git bash zsh jq
       - sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
       # Render every template to catch template/syntax errors before they reach a
       # real machine. --promptDefaults uses each prompt's default value, so the
@@ -23,6 +24,9 @@ steps:
       # valid shell — and ~/.shell.env is the one shell file shellcheck cannot read
       # in place, because it sees Go template syntax rather than shell.
       - bash "$CI_WORKSPACE/scripts/check-rendered-shell.sh"
+      # Renovate runs the vendoring script unattended; this proves offline that it
+      # fails without wiping anything (ADR-0006).
+      - bash "$CI_WORKSPACE/scripts/test-update-vendored-skills.sh"
 
 when:
   event: [push, manual]

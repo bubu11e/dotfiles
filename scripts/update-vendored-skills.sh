@@ -36,7 +36,12 @@ PONYTAIL_REF="96608e078b2d5ea607c5c3b8b5a54d1c1fba6846"
 
 # Managed files live under home/ (see .chezmoiroot), so the skills tree is
 # home/dot_claude/skills, not dot_claude/skills at the repo root.
-SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/home/dot_claude/skills"
+#
+# These, and SKILLS_ROWS below, are overridable so
+# scripts/test-update-vendored-skills.sh can run offline against file:// fixtures.
+SKILLS_DIR="${SKILLS_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/home/dot_claude/skills}"
+GITHUB_API="${GITHUB_API:-https://api.github.com}"
+GITHUB_RAW="${GITHUB_RAW:-https://raw.githubusercontent.com}"
 RETRIEVED="$(date -u +%Y-%m-%d)"
 
 # The vendored set, as "repo|subpath|skill", where skill `*` means every skill
@@ -52,6 +57,9 @@ SKILLS=(
   "AminBlg/SimpleEnglish|skills|simple-english"
   "DietrichGebert/ponytail|skills|*"
 )
+if [[ -n "${SKILLS_ROWS:-}" ]]; then
+  IFS=$'\n' read -r -d '' -a SKILLS <<<"$SKILLS_ROWS" || true
+fi
 
 # Per-repo responses are cached here so a repo used by several skills is
 # fetched once. Keyed by the repo slug with "/" flattened to "_".
@@ -97,7 +105,8 @@ tree_json() {
   local cache
   cache="${CACHE_DIR}/$(cache_key "$1").tree.json"
   if [[ ! -f "$cache" ]]; then
-    fetch_to_cache "https://api.github.com/repos/$1/git/trees/$2?recursive=1" "$cache" || return 1
+    # shellcheck disable=SC2310
+    fetch_to_cache "${GITHUB_API}/repos/$1/git/trees/$2?recursive=1" "$cache" || return 1
   fi
   echo "$cache"
 }
@@ -107,13 +116,15 @@ license_text() {
   local cache
   cache="${CACHE_DIR}/$(cache_key "$1").LICENSE"
   if [[ ! -f "$cache" ]]; then
-    fetch_to_cache "https://raw.githubusercontent.com/$1/$2/LICENSE" "$cache" || return 1
+    # shellcheck disable=SC2310
+    fetch_to_cache "${GITHUB_RAW}/$1/$2/LICENSE" "$cache" || return 1
   fi
   echo "$cache"
 }
 
 write_upstream_md() {
-  # $1 = repo, $2 = subpath, $3 = skill, $4 = ref, $5 = destination dir
+  # $1 = repo, $2 = subpath, $3 = skill, $4 = ref, $5 = destination dir,
+  # $6 = retrieval date
   # The licence is embedded verbatim from upstream so the copyright line always
   # matches the repo the files actually came from.
   {
@@ -123,7 +134,7 @@ write_upstream_md() {
 Vendored from [$1](https://github.com/$1) — \`$2/$3\`.
 
 - Pinned commit: \`$4\`
-- Retrieved: ${RETRIEVED}
+- Retrieved: $6
 - Refreshed by: \`scripts/update-vendored-skills.sh\` (bumped by Renovate)
 
 ## License
@@ -141,6 +152,7 @@ list_skill_files() {
   # $1 = repo, $2 = subpath, $3 = skill, $4 = ref
   # -> echoes each file path relative to the skill's own dir.
   local tree
+  # shellcheck disable=SC2310
   tree="$(tree_json "$1" "$4")" || return 1
   jq -r --arg p "$2/$3/" \
     '.tree[] | select(.type == "blob") | select(.path | startswith($p)) | .path[($p | length):]' \
@@ -149,19 +161,20 @@ list_skill_files() {
 
 expand_skills() {
   # $1 = repo, $2 = subpath, $3 = skill or `*` -> echoes one skill name per line.
+  # A named skill is checked against the tree too, so every fetch that can fail
+  # does so before anything is wiped.
   local tree ref names
-  if [[ "$3" != "*" ]]; then
-    echo "$3"
-    return 0
-  fi
+  # shellcheck disable=SC2310
   ref="$(ref_for_repo "$1")" || return 1
+  # shellcheck disable=SC2310
   tree="$(tree_json "$1" "$ref")" || return 1
-  names="$(jq -r --arg p "$2/" \
+  names="$(jq -r --arg p "$2/" --arg want "$3" \
     '.tree[] | select(.type == "blob") | .path | select(startswith($p)) | .[($p | length):]
-     | select(test("^[^/]+/SKILL\\.md$")) | split("/")[0]' \
+     | select(test("^[^/]+/SKILL\\.md$")) | split("/")[0]
+     | select($want == "*" or . == $want)' \
     "$tree")" || return 1
   if [[ -z "$names" ]]; then
-    echo "no skills under $1/$2 at ${ref}" >&2
+    echo "no skill matching '$3' under $1/$2 at ${ref}" >&2
     return 1
   fi
   echo "$names"
@@ -169,7 +182,7 @@ expand_skills() {
 
 vendor_skill() {
   # $1 = repo, $2 = subpath, $3 = skill
-  local repo="$1" subpath="$2" skill="$3" ref dest listing f
+  local repo="$1" subpath="$2" skill="$3" ref dest listing f retrieved staging
   ref="$(ref_for_repo "$repo")"
   dest="${SKILLS_DIR}/${skill}"
 
@@ -187,17 +200,29 @@ vendor_skill() {
     return 1
   fi
 
-  # Wipe and refetch so a file removed upstream does not linger. UPSTREAM.md is
-  # regenerated below, so nothing hand-written is lost in the wipe.
-  rm -rf "$dest"
-  mkdir -p "$dest"
+  # An unchanged pin keeps its date: otherwise every Renovate bump of one repo
+  # would rewrite the UPSTREAM.md of every skill from every other repo too.
+  retrieved=""
+  if [[ -f "$dest/UPSTREAM.md" ]] && grep -qF -- "- Pinned commit: \`${ref}\`" "$dest/UPSTREAM.md"; then
+    retrieved="$(sed -n 's/^- Retrieved: //p' "$dest/UPSTREAM.md")"
+  fi
+  retrieved="${retrieved:-$RETRIEVED}"
+
+  # Fetch into a staging dir and swap it in whole, so a file removed upstream does
+  # not linger and a failed download leaves the previous copy in place. The
+  # staging dir sits outside SKILLS_DIR so the prune pass can never see it.
+  staging="${CACHE_DIR}/staging/${skill}"
+  rm -rf "$staging"
+  mkdir -p "$staging"
   while IFS= read -r f; do
     echo "fetching ${repo}/${subpath}/${skill}/${f}"
-    mkdir -p "${dest}/$(dirname "$f")"
-    curl -fsSL "https://raw.githubusercontent.com/${repo}/${ref}/${subpath}/${skill}/${f}" \
-      -o "${dest}/${f}"
+    mkdir -p "${staging}/$(dirname "$f")"
+    curl -fsSL "${GITHUB_RAW}/${repo}/${ref}/${subpath}/${skill}/${f}" \
+      -o "${staging}/${f}"
   done <<<"$listing"
-  write_upstream_md "$repo" "$subpath" "$skill" "$ref" "$dest"
+  write_upstream_md "$repo" "$subpath" "$skill" "$ref" "$staging" "$retrieved"
+  rm -rf "$dest"
+  mv "$staging" "$dest"
 }
 
 # Resolve every row before touching the tree, so a failed fetch or a name clash
@@ -205,6 +230,7 @@ vendor_skill() {
 resolved=()
 for entry in "${SKILLS[@]}"; do
   IFS='|' read -r repo subpath skill <<<"$entry"
+  # shellcheck disable=SC2310
   names="$(expand_skills "$repo" "$subpath" "$skill")" || exit 1
   while IFS= read -r name; do
     # The wipe in vendor_skill must never reach a locally-authored skill: a

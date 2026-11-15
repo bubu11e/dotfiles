@@ -35,6 +35,8 @@
   infrastructure, POSIX sh for portable scripts, chezmoi for dotfiles.
 - Usual tooling: prek for hooks, golangci-lint, shellcheck, yamllint, hadolint, gitleaks; Woodpecker
   for CI; Renovate for dependency updates.
+- Local tools: `sed` is GNU (`sed -i`, no `''`); `touch`, `date`, `stat` and `xargs` are BSD;
+  `grep` and `find` are aliases to ugrep and bfs. shellcheck is only installed inside prek.
 - Speak and write English — chat, code, comments, commits, docs. Use French only when the
   repository's own content is mostly French.
 

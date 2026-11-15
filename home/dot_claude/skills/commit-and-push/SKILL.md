@@ -25,7 +25,7 @@ description: >-
 
 ### 4. Pre-Commit Validation
 
-- If `.pre-commit-config.yaml` exists, run `pre-commit run --staged` (or `--all-files` if staged-only is not supported).
+- If `.pre-commit-config.yaml` exists, run `prek run`, which checks the staged files.
 - **Hard constraint:** If pre-commit fails, stop. Do not commit. Report the exact errors to the user and wait for a fix before retrying.
 
 ### 5. Compose the Commit Message
@@ -61,4 +61,7 @@ Rules:
 ### 7. Push
 
 - Run `git push`.
+- When the user names a target branch other than the current one ("to main"), fast-forward it onto
+  the current branch (`git switch <target> && git merge --ff-only <current>`), push the target,
+  then delete the merged local branch. If it cannot fast-forward, stop and ask.
 - If the push is rejected (remote is ahead): stop, report the rejection, and ask the user to pull/rebase first. Never force-push unless explicitly instructed.

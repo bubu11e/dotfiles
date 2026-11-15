@@ -1,0 +1,4 @@
+# set -e silently turns off inside a function called from ||, &&, if or !: the
+# bug ADR-0006 records. A deliberate call carries `disable=SC2310` and must
+# propagate its own failure.
+enable=check-set-e-suppressed

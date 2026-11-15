@@ -77,6 +77,8 @@
 - Secrets: Never paste or commit secrets (API keys, tokens, passwords, JWTs).
 - Logs: Always redact sensitive data from logs. Use structured logs whenever possible.
 - Review: Manually review all outputs before sharing to ensure no sensitive data remains.
+- Client data: never feed real client configs, logs or inventories to the model. Work on anonymized
+  or fabricated samples of the same shape, then run the resulting script locally on the real data.
 
 ## Git & Version Control
 - Branching: For non-trivial changes, always work on a dedicated branch with a meaningful, descriptive name.

@@ -2,7 +2,7 @@
 
 Vendored from [mattpocock/skills](https://github.com/mattpocock/skills) — `skills/engineering/research`.
 
-- Pinned commit: `4ae2317ddb22b046e26455e4f9c9b3aaaf62212d`
+- Pinned commit: `5863806dd4e15c63174bee4e7515a4256792ecfa`
 - Retrieved: 2026-11-15
 - Refreshed by: `scripts/update-vendored-skills.sh` (bumped by Renovate)
 

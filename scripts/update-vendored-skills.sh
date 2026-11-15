@@ -29,7 +29,7 @@ CLOUDFLARE_SECURITY_AUDIT_REF="c1c8a8c1471069fb0e188eeaff69b8e8db6564a8"
 CAVEMAN_REF="4bf8898b31c93326a5e5d90999241a1c15b52ed2"
 
 # renovate: datasource=git-refs depName=AminBlg/SimpleEnglish packageName=https://github.com/AminBlg/SimpleEnglish branch=main
-SIMPLE_ENGLISH_REF="a6fcb4fde098b33617cc1578d151ebf58774b883"
+SIMPLE_ENGLISH_REF="300432a9e4c473229a7049ab61b8ca2522d9214c"
 
 # renovate: datasource=git-refs depName=DietrichGebert/ponytail packageName=https://github.com/DietrichGebert/ponytail branch=main
 PONYTAIL_REF="96608e078b2d5ea607c5c3b8b5a54d1c1fba6846"

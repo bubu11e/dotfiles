@@ -6,6 +6,13 @@
   "theme": "dark-ansi",
   "model": "opus",
   "attribution": false,
+  "skillOverrides": {
+    "setup-pre-commit": "off",
+    "migrate-to-shoehorn": "off",
+    "scaffold-exercises": "off",
+    "ponytail-gain": "user-invocable-only",
+    "ponytail-help": "user-invocable-only"
+  },
   "hooks": {
     "SessionStart": [
       {
